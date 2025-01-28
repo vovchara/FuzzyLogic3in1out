@@ -7,41 +7,153 @@ let energyConsumption;
 // Вихідна змінна
 let securityRiskLevel;
 
-// Функції належності для сили з'єднання (CS)
 function membershipCS(value) {
+    let low = 0;
+    if (value <= 20) {
+        low = 1;
+    }
+    if (value > 20 && value <= 40) {
+        low = (40 - value) / 20;
+    }
+    if (value > 40) {
+        low = 0;
+    }
+
+    let medium = 0;
+    if (value <= 20) {
+        medium = 0;
+    }
+    if (value > 20 && value <= 40) {
+        medium = (value - 20) / 20;
+    }
+    if (value > 40 && value <= 60) {
+        medium = 1;
+    }
+    if (value > 60 && value < 80) {
+        medium = (80 - value) / 20;
+    }
+    if (value >= 80) {
+        medium = 0;
+    }
+
+    let high = 0;
+    if (value <= 60) {
+        high = 0;
+    }
+    if (value > 60 && value <= 80) {
+        high = (value - 60) / 20;
+    }
+    if (value > 80) {
+        high = 1;
+    }
     return {
-        L: Math.max(0, Math.min((40 - value) / 20, 1)),
-        M: Math.max(0, Math.min((value - 20) / 20, (60 - value) / 20)),
-        H: Math.max(0, Math.min((value - 40) / 20, 1))
+        L: Math.max(0, low), // Low
+        M: Math.max(0, medium), // Medium
+        H: Math.max(0, high) // High
     };
 }
 
-// Функції належності для часу відгуку (RT)
 function membershipRT(value) {
+    let low = 0;
+    if (value <= 30) {
+        low = 1;
+    }
+    if (value > 30 && value <= 50) {
+        low = (50 - value) / 20;
+    }
+    if (value > 50) {
+        low = 0;
+    }
+
+    let medium = 0;
+    if (value <= 30) {
+        medium = 0;
+    }
+    if (value > 30 && value <= 50) {
+        medium = (value - 30) / 20;
+    }
+    if (value > 50 && value <= 70) {
+        medium = 1;
+    }
+    if (value > 70 && value < 90) {
+        medium = (90 - value) / 20;
+    }
+    if (value >= 90) {
+        medium = 0;
+    }
+
+    let high = 0;
+    if (value <= 70) {
+        high = 0;
+    }
+    if (value > 70 && value <= 90) {
+        high = (value - 70) / 20;
+    }
+    if (value > 90) {
+        high = 1;
+    }
+
     return {
-        L: Math.max(0, Math.min((50 - value) / 20, 1)),
-        M: Math.max(0, Math.min((value - 30) / 20, (70 - value) / 20)),
-        H: Math.max(0, Math.min((value - 50) / 20, 1))
+        L: Math.max(0, low), // Low
+        M: Math.max(0, medium), // Medium
+        H: Math.max(0, high) // High
     };
 }
 
-// Функції належності для споживання енергії (EC)
 function membershipEC(value) {
+    let low = 0;
+    if (value <= 10) {
+        low = 1;
+    }
+    if (value > 10 && value <= 30) {
+        low = (30 - value) / 20;
+    }
+    if (value > 30) {
+        low = 0;
+    }
+
+    let medium = 0;
+    if (value <= 10) {
+        medium = 0;
+    }
+    if (value > 10 && value <= 30) {
+        medium = (value - 10) / 20;
+    }
+    if (value > 30 && value <= 50) {
+        medium = 1;
+    }
+    if (value > 50 && value < 70) {
+        medium = (70 - value) / 20;
+    }
+    if (value >= 70) {
+        medium = 0;
+    }
+
+    let high = 0;
+    if (value <= 50) {
+        high = 0;
+    }
+    if (value > 50 && value <= 70) {
+        high = (value - 50) / 20;
+    }
+    if (value > 70) {
+        high = 1;
+    }
     return {
-        L: Math.max(0, Math.min((30 - value) / 20, 1)),
-        M: Math.max(0, Math.min((value - 10) / 20, (50 - value) / 20)),
-        H: Math.max(0, Math.min((value - 30) / 20, 1))
+        L: Math.max(0, low), // Low
+        M: Math.max(0, medium), // Medium
+        H: Math.max(0, high) // High
     };
 }
 
 // Функції належності для рівня ризику безпеки (SR)
 function membershipSR(value) {
     return {
-        VL: Math.max(0, Math.min((50 - value) / 25, 1)),
-        L: Math.max(0, Math.min((value - 25) / 25, (75 - value) / 25)),
-        M: Math.max(0, Math.min((value - 50) / 25, (100 - value) / 25)),
-        H: Math.max(0, Math.min((value - 75) / 25, (125 - value) / 25)),
-        VH: Math.max(0, Math.min((value - 100) / 25, 1))
+        VL: Math.max(0, Math.min((25 - value) / 25, 1)), // Very Low
+        L: Math.max(0, Math.min((value - 0) / 25, (50 - value) / 25)), // Low
+        M: Math.max(0, Math.min((value - 25) / 25, (75 - value) / 25)), // Medium
+        H: Math.max(0, Math.min((value - 50) / 25, (100 - value) / 25)), // High
+        VH: Math.max(0, Math.min((value - 75) / 25, 1)) // Very High
     };
 }
 
@@ -77,32 +189,6 @@ const rules = [
     { CS: 'High', RT: 'High', EC: 'High', SR: 'Low' }
 ];
 
-// Крок 5: Реалізація фазі-контролера на JavaScript
-// Фузифікація
-function fuzzify(input, membershipFunction) {
-    return membershipFunction(input);
-}
-
-// Дефазифікація
-// function defuzzify(fuzzyOutput) {
-function defuzzify(fuzzyOutput) {
-    let numerator = 0;
-    let denominator = 0;
-    const values = {
-        VL: 25,
-        L: 50,
-        M: 75,
-        H: 100,
-        VH: 125
-    };
-
-    for (let key in fuzzyOutput) {
-        numerator += fuzzyOutput[key] * values[key];
-        denominator += fuzzyOutput[key];
-    }
-    return denominator === 0 ? 0 : numerator / denominator;
-}
-
 function fuzzyController(CS, RT, EC) {
     const fuzzyCS = membershipCS(CS);
     const fuzzyRT = membershipRT(RT);
@@ -114,10 +200,6 @@ function fuzzyController(CS, RT, EC) {
         const csDegree = fuzzyCS[convertToKey(rule.CS)];
         const rtDegree = fuzzyRT[convertToKey(rule.RT)];
         const ecDegree = fuzzyEC[convertToKey(rule.EC)];
-        // log
-        //   console.log(`csDegree: ecDegree=${csDegree}`);
-        // console.log(`rtDegree: ecDegree=${rtDegree}`);
-        // console.log(`ecDegree: ecDegree=${ecDegree}`);
 
         const minDegree = Math.min(csDegree, rtDegree, ecDegree);
 
@@ -128,8 +210,17 @@ function fuzzyController(CS, RT, EC) {
         if (rule.SR === 'Very High') fuzzySR.VH = Math.max(fuzzySR.VH, minDegree);
     });
 
-    return defuzzify(fuzzySR);
+    const maxKey = Object.keys(fuzzySR).reduce((a, b) => fuzzySR[a] > fuzzySR[b] ? a : b);
+    return keyToString[maxKey];
 }
+
+const keyToString = {
+    "VL": "Very low",
+    "L": "Low",
+    "M": "Medium",
+    "H": "High",
+    "VH": "Very high"
+};
 
 // Функція для конвертації значень з правил у ключі для функцій належності
 function convertToKey(value) {
@@ -150,25 +241,41 @@ function convertToKey(value) {
 }
 
 const testData = [
-    { CS: 30, RT: 40, EC: 20, expected: 100 },
-    { CS: 70, RT: 80, EC: 60, expected: 75 },
-    { CS: 50, RT: 50, EC: 50, expected: 75 },
-    { CS: 90, RT: 30, EC: 10, expected: 25 },
-    { CS: 20, RT: 90, EC: 70, expected: 125 },
-    { CS: 40, RT: 60, EC: 30, expected: 100 },
-    { CS: 60, RT: 70, EC: 40, expected: 75 },
-    { CS: 80, RT: 20, EC: 90, expected: 50 },
-    { CS: 25, RT: 35, EC: 45, expected: 100 },
-    { CS: 55, RT: 65, EC: 75, expected: 125 },
-    { CS: 85, RT: 95, EC: 85, expected: 50 },
-    { CS: 35, RT: 45, EC: 55, expected: 100 },
-    { CS: 65, RT: 75, EC: 65, expected: 75 },
-    { CS: 95, RT: 85, EC: 25, expected: 50 }
+    { CS: 10, RT: 10, EC: 10, expected: "High" }, // Rule 1
+    { CS: 10, RT: 10, EC: 35, expected: "High" }, // Rule 2
+    { CS: 10, RT: 10, EC: 60, expected: "High" }, // Rule 3
+    { CS: 10, RT: 25, EC: 10, expected: "High" }, // Rule 4
+    { CS: 10, RT: 60, EC: 35, expected: "Very high" }, // Rule 5
+    { CS: 10, RT: 60, EC: 60, expected: "Very high" }, // Rule 6
+    { CS: 10, RT: 80, EC: 10, expected: "High" }, // Rule 7
+    { CS: 10, RT: 80, EC: 35, expected: "Very high" }, // Rule 8
+    { CS: 10, RT: 80, EC: 60, expected: "Very high" }, // Rule 9
+    { CS: 31, RT: 10, EC: 10, expected: "Very low" }, // Rule 10
+    { CS: 31, RT: 10, EC: 35, expected: "Medium" }, // Rule 11
+    { CS: 31, RT: 10, EC: 60, expected: "Medium" }, // Rule 12
+    { CS: 31, RT: 41, EC: 10, expected: "Low" }, // Rule 13
+    { CS: 31, RT: 40, EC: 35, expected: "Medium" }, // Rule 14
+    { CS: 31, RT: 40, EC: 60, expected: "High" }, // Rule 15
+    { CS: 31, RT: 85, EC: 10, expected: "Medium" }, // Rule 16
+    { CS: 31, RT: 70, EC: 35, expected: "Medium" }, // Rule 17
+    { CS: 31, RT: 90, EC: 60, expected: "Very high" }, // Rule 18
+    { CS: 50, RT: 10, EC: 10, expected: "Very low" }, // Rule 19
+    { CS: 80, RT: 10, EC: 35, expected: "Very low" }, // Rule 20
+    { CS: 90, RT: 10, EC: 60, expected: "Low" }, // Rule 21
+    { CS: 100, RT: 40, EC: 10, expected: "Very low" }, // Rule 22
+    { CS: 95, RT: 40, EC: 35, expected: "Very low" }, // Rule 23
+    { CS: 88, RT: 40, EC: 60, expected: "Low" }, // Rule 24
+    { CS: 89, RT: 88, EC: 10, expected: "Low" }, // Rule 25
+    { CS: 91, RT: 92, EC: 35, expected: "Low" }, // Rule 26
+    { CS: 92, RT: 70, EC: 60, expected: "Low" } // Rule 27
 ];
 
 // Перевірка роботи контролера
 testData.forEach(data => {
     const result = fuzzyController(data.CS, data.RT, data.EC);
+    // const resultLevel = membershipSR(result);
+    // const isCorrect = resultLevel === data.expected;
     const isCorrect = result === data.expected;
-    console.log(`Input: CS=${data.CS}, RT=${data.RT}, EC=${data.EC} => SR=${result} (Expected: ${data.expected}) - ${isCorrect ? 'Correct' : 'Incorrect'}`);
+    console.log(`Input: CS=${data.CS}, RT=${data.RT}, EC=${data.EC} => SR=${result} (Expected: ${data.expected}) - ${isCorrect ? 'Correct' : 'Incorrect'}, Risk Level: ${result}`);
+    // console.log(`Input: CS=${data.CS}, RT=${data.RT}, EC=${data.EC} => SR=${result} (Expected: ${data.expected}) - ${isCorrect ? 'Correct' : 'Incorrect'}, Risk Level: ${getRiskLevel(resultLevel)}`);
 });
