@@ -1,5 +1,5 @@
 import { applyI18n, q } from "../dom";
-import { t } from "../i18n";
+import { onLanguageChange, t } from "../i18n";
 import type { FuzzySystem } from "../fuzzy/types";
 import type { Store } from "../state";
 import { mountFormulasModal } from "./formulasModal";
@@ -10,10 +10,13 @@ import { mountTabBar } from "./tabBar";
 export interface AppShellCtx {
   store: Store;
   systems: readonly FuzzySystem[];
-  recompute: () => void;
+  updateInputs(patch: Readonly<Record<string, number>>): void;
+  switchSystem(id: string): void;
 }
 
-export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): void {
+export type Unmount = () => void;
+
+export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount {
   container.innerHTML = `
     <div class="min-h-screen flex flex-col">
       <header class="px-4 py-3 border-b bg-white shadow-sm sticky top-0 z-10">
@@ -41,11 +44,17 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): void {
     ctx.store.setState({ formulasOpen: true });
   });
 
-  mountLanguageSwitcher(q(container, "#langSwitcher"));
-  mountTabBar(q(container, "#tabBar"), ctx);
-  mountFuzzyTab(q(container, "#activeTab"), ctx);
-  mountFormulasModal(q(container, "#modalRoot"), ctx);
+  const unmounts: Unmount[] = [];
+  unmounts.push(mountLanguageSwitcher(q(container, "#langSwitcher")));
+  unmounts.push(mountTabBar(q(container, "#tabBar"), ctx));
+  unmounts.push(mountFuzzyTab(q(container, "#activeTab"), ctx));
+  unmounts.push(mountFormulasModal(q(container, "#modalRoot"), ctx));
 
   applyI18n(container, t);
-  ctx.store.subscribe(() => applyI18n(container, t));
+  const langUnsub = onLanguageChange(() => applyI18n(container, t));
+
+  return () => {
+    langUnsub();
+    for (const u of unmounts) u();
+  };
 }

@@ -1,15 +1,15 @@
-import { evaluateShape, getMostActiveTerm, membershipsFor } from "../fuzzy/engine";
+import { getMostActiveTerm, membershipsFor } from "../fuzzy/engine";
 import { q, qa } from "../dom";
 import { t } from "../i18n";
 import type { FuzzySystem, FuzzyVariable } from "../fuzzy/types";
-import type { AppShellCtx } from "./appShell";
+import type { AppShellCtx, Unmount } from "./appShell";
 import { drawMembershipGraph } from "./membershipGraph";
 
 export function mountGraphsPanel(
   container: HTMLElement,
   ctx: AppShellCtx,
   system: FuzzySystem,
-): void {
+): Unmount {
   const allVars: FuzzyVariable[] = [...system.inputs, system.output];
   container.innerHTML = `
     <h2 class="card-title" data-i18n="panels.graphs"></h2>
@@ -29,8 +29,17 @@ export function mountGraphsPanel(
 
   const wrappers = qa(container, "[data-graph]");
 
+  let rafId: number | null = null;
+  function scheduleRender(): void {
+    if (rafId !== null) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      renderAll();
+    });
+  }
+
   function renderAll(): void {
-    const { evaluation } = ctx.store.getState();
+    const { evaluation, inputs } = ctx.store.getState();
     for (const wrap of wrappers) {
       const varId = wrap.dataset.graph!;
       const variable = allVars.find((v) => v.id === varId)!;
@@ -38,7 +47,7 @@ export function mountGraphsPanel(
       const isOutput = varId === system.output.id;
       const currentValue = isOutput
         ? (evaluation?.output ?? null)
-        : (ctx.store.getState().inputs[varId] ?? variable.defaultValue);
+        : (inputs[varId] ?? variable.defaultValue);
       const ms = evaluation?.memberships[varId];
       const highlightTermId = ms ? getMostActiveTerm(ms) : null;
       drawMembershipGraph({
@@ -92,7 +101,13 @@ export function mountGraphsPanel(
   }
 
   renderAll();
-  ctx.store.subscribe(renderAll);
-  window.addEventListener("resize", renderAll);
-  void evaluateShape;
+  const unsub = ctx.store.subscribe(scheduleRender);
+  const onResize = () => scheduleRender();
+  window.addEventListener("resize", onResize);
+
+  return () => {
+    if (rafId !== null) cancelAnimationFrame(rafId);
+    window.removeEventListener("resize", onResize);
+    unsub();
+  };
 }

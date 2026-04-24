@@ -1,12 +1,12 @@
 import katex from "katex";
-import { q, qa } from "../dom";
+import { applyI18n, q, qa } from "../dom";
 import { systems as allSystems } from "../fuzzy/systems";
 import type { FuzzySystem } from "../fuzzy/types";
 import { t } from "../i18n";
 import { ruleToLatex, termToLatex, variableDomainLatex } from "../utils/formulas";
-import type { AppShellCtx } from "./appShell";
+import type { AppShellCtx, Unmount } from "./appShell";
 
-export function mountFormulasModal(container: HTMLElement, ctx: AppShellCtx): void {
+export function mountFormulasModal(container: HTMLElement, ctx: AppShellCtx): Unmount {
   container.innerHTML = `
     <div data-modal
       class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm overflow-y-auto p-4 flex items-start justify-center">
@@ -47,20 +47,29 @@ export function mountFormulasModal(container: HTMLElement, ctx: AppShellCtx): vo
     return allSystems.find((s) => s.id === id) ?? allSystems[0];
   }
 
-  function render(): void {
-    const system = currentSystem();
-    body.innerHTML = buildBody(system);
-    renderKatex(body);
-  }
+  let lastOpen = false;
+  let lastRenderedId: string | null = null;
+  let lastRenderedLang: string | null = null;
 
   function sync(): void {
-    const open = ctx.store.getState().formulasOpen;
-    modal.classList.toggle("hidden", !open);
-    if (open) render();
+    const { formulasOpen, activeSystemId, language } = ctx.store.getState();
+    if (formulasOpen !== lastOpen) {
+      lastOpen = formulasOpen;
+      modal.classList.toggle("hidden", !formulasOpen);
+    }
+    if (!formulasOpen) return;
+    if (activeSystemId !== lastRenderedId || language !== lastRenderedLang) {
+      lastRenderedId = activeSystemId;
+      lastRenderedLang = language;
+      const system = currentSystem();
+      body.innerHTML = buildBody(system);
+      applyI18n(body, t);
+      renderKatex(body);
+    }
   }
 
   sync();
-  ctx.store.subscribe(sync);
+  return ctx.store.subscribe(sync);
 }
 
 function buildBody(system: FuzzySystem): string {

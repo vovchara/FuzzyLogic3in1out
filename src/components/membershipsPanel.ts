@@ -1,13 +1,12 @@
 import { qa } from "../dom";
-import { t } from "../i18n";
 import type { FuzzySystem, FuzzyVariable } from "../fuzzy/types";
-import type { AppShellCtx } from "./appShell";
+import type { AppShellCtx, Unmount } from "./appShell";
 
 export function mountMembershipsPanel(
   container: HTMLElement,
   ctx: AppShellCtx,
   system: FuzzySystem,
-): void {
+): Unmount {
   const allVars: FuzzyVariable[] = [...system.inputs, system.output];
   container.innerHTML = `
     <h2 class="card-title" data-i18n="panels.memberships"></h2>
@@ -57,8 +56,7 @@ export function mountMembershipsPanel(
   }
 
   render();
-  ctx.store.subscribe(render);
-  void t;
+  return ctx.store.subscribe(render);
 }
 
 function isMaxInObject(ms: Readonly<Record<string, number>>, key: string): boolean {

@@ -1,13 +1,12 @@
-import { q, qa } from "../dom";
-import { t } from "../i18n";
+import { qa } from "../dom";
 import type { FuzzySystem, FuzzyVariable } from "../fuzzy/types";
-import type { AppShellCtx } from "./appShell";
+import type { AppShellCtx, Unmount } from "./appShell";
 
 export function mountRulesPanel(
   container: HTMLElement,
   ctx: AppShellCtx,
   system: FuzzySystem,
-): void {
+): Unmount {
   const varById = new Map<string, FuzzyVariable>();
   for (const v of system.inputs) varById.set(v.id, v);
   varById.set(system.output.id, system.output);
@@ -66,9 +65,7 @@ export function mountRulesPanel(
   }
 
   render();
-  ctx.store.subscribe(render);
-  void t;
-  void q;
+  return ctx.store.subscribe(render);
 }
 
 function renderRulePart(

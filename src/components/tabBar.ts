@@ -1,8 +1,7 @@
 import { qa } from "../dom";
-import { t } from "../i18n";
-import type { AppShellCtx } from "./appShell";
+import type { AppShellCtx, Unmount } from "./appShell";
 
-export function mountTabBar(container: HTMLElement, ctx: AppShellCtx): void {
+export function mountTabBar(container: HTMLElement, ctx: AppShellCtx): Unmount {
   container.innerHTML = `
     <div class="flex gap-1 overflow-x-auto border-b border-slate-200">
       ${ctx.systems
@@ -29,18 +28,11 @@ export function mountTabBar(container: HTMLElement, ctx: AppShellCtx): void {
   for (const btn of qa<HTMLButtonElement>(container, "[data-system]")) {
     btn.addEventListener("click", () => {
       const id = btn.dataset.system!;
-      if (id !== ctx.store.getState().activeSystemId) {
-        const system = ctx.systems.find((s) => s.id === id);
-        if (!system) return;
-        const inputs: Record<string, number> = {};
-        for (const v of system.inputs) inputs[v.id] = v.defaultValue;
-        ctx.store.setState({ activeSystemId: id, inputs });
-        ctx.recompute();
-      }
+      if (id !== ctx.store.getState().activeSystemId) ctx.switchSystem(id);
     });
   }
 
   refresh();
-  ctx.store.subscribe(refresh);
-  void t;
+  const unsub = ctx.store.subscribe(refresh);
+  return unsub;
 }

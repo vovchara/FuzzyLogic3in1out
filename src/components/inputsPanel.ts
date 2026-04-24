@@ -1,13 +1,12 @@
 import { q, qa } from "../dom";
-import { t } from "../i18n";
 import type { FuzzySystem } from "../fuzzy/types";
-import type { AppShellCtx } from "./appShell";
+import type { AppShellCtx, Unmount } from "./appShell";
 
 export function mountInputsPanel(
   container: HTMLElement,
   ctx: AppShellCtx,
   system: FuzzySystem,
-): void {
+): Unmount {
   container.innerHTML = `
     <h2 class="card-title" data-i18n="panels.inputs"></h2>
     <div class="grid gap-4 mt-3">
@@ -60,8 +59,7 @@ export function mountInputsPanel(
     if (!Number.isFinite(parsed)) return;
     const variable = system.inputs.find((v) => v.id === id)!;
     const clamped = Math.max(variable.range[0], Math.min(variable.range[1], parsed));
-    ctx.store.setState((s) => ({ inputs: { ...s.inputs, [id]: clamped } }));
-    ctx.recompute();
+    ctx.updateInputs({ [id]: clamped });
   }
 
   for (const row of rows) {
@@ -73,6 +71,5 @@ export function mountInputsPanel(
   }
 
   sync();
-  ctx.store.subscribe(sync);
-  void t;
+  return ctx.store.subscribe(sync);
 }

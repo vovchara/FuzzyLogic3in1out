@@ -1,7 +1,8 @@
-import { q, qa } from "../dom";
+import { qa } from "../dom";
 import { getLang, LANGUAGES, onLanguageChange, setLang, type Language } from "../i18n";
+import type { Unmount } from "./appShell";
 
-export function mountLanguageSwitcher(container: HTMLElement): void {
+export function mountLanguageSwitcher(container: HTMLElement): Unmount {
   container.innerHTML = `
     <div class="inline-flex rounded-md border border-slate-300 overflow-hidden text-sm" role="group" aria-label="Language">
       ${LANGUAGES.map(
@@ -32,6 +33,5 @@ export function mountLanguageSwitcher(container: HTMLElement): void {
   }
 
   refresh();
-  onLanguageChange(refresh);
-  void q;
+  return onLanguageChange(refresh);
 }

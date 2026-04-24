@@ -1,13 +1,13 @@
 import { q } from "../dom";
 import { t } from "../i18n";
 import type { FuzzySystem } from "../fuzzy/types";
-import type { AppShellCtx } from "./appShell";
+import type { AppShellCtx, Unmount } from "./appShell";
 
 export function mountOutputPanel(
   container: HTMLElement,
   ctx: AppShellCtx,
   system: FuzzySystem,
-): void {
+): Unmount {
   container.innerHTML = `
     <h2 class="card-title" data-i18n="panels.output"></h2>
     <div class="mt-3 grid gap-3">
@@ -58,5 +58,5 @@ export function mountOutputPanel(
   });
 
   render();
-  ctx.store.subscribe(render);
+  return ctx.store.subscribe(render);
 }
