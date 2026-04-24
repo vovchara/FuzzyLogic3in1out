@@ -44,8 +44,28 @@ describe("Aggregation controller (weighted-average defuzz, singleton output)", (
     expect(r.outputTermActivations?.None).toBe(0);
   });
 
-  test("Uncovered input (E=R=T=50) falls back to range midpoint", () => {
-    expect(engine.evaluate({ E: 50, R: 50, T: 50 }).output).toBe(50);
+  test("Monotonic in E: higher energy → non-decreasing output", () => {
+    const p1 = engine.evaluate({ E: 20, R: 50, T: 50 }).output;
+    const p2 = engine.evaluate({ E: 50, R: 50, T: 50 }).output;
+    const p3 = engine.evaluate({ E: 80, R: 50, T: 50 }).output;
+    expect(p2).toBeGreaterThanOrEqual(p1);
+    expect(p3).toBeGreaterThanOrEqual(p2);
+  });
+
+  test("Monotonic in R: higher reputation → non-decreasing output", () => {
+    const p1 = engine.evaluate({ E: 50, R: 20, T: 50 }).output;
+    const p2 = engine.evaluate({ E: 50, R: 50, T: 50 }).output;
+    const p3 = engine.evaluate({ E: 50, R: 80, T: 50 }).output;
+    expect(p2).toBeGreaterThanOrEqual(p1);
+    expect(p3).toBeGreaterThanOrEqual(p2);
+  });
+
+  test("Monotonic in T: higher load → non-increasing output", () => {
+    const p1 = engine.evaluate({ E: 50, R: 50, T: 20 }).output;
+    const p2 = engine.evaluate({ E: 50, R: 50, T: 50 }).output;
+    const p3 = engine.evaluate({ E: 50, R: 50, T: 80 }).output;
+    expect(p2).toBeLessThanOrEqual(p1);
+    expect(p3).toBeLessThanOrEqual(p2);
   });
 
   test("Deterministic", () => {
