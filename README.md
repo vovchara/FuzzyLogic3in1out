@@ -1,271 +1,99 @@
-# Fuzzy Logic Communication System Controller
+# Fuzzy Logic 3-in-1-out
 
-Система нечіткого виводу для визначення Вірогідності (P) системи зв'язку на основі трьох вхідних параметрів: Залишкової енергії (E), Коефіцієнта передавання (T) та Коефіцієнта затримки (D).
+A static SPA that demonstrates a Mamdani-style fuzzy inference system with 3 inputs and 1 output, built for PhD study use. Uses `@thi.ng/fuzzy` with centroid defuzzification; UI written in Vanilla TypeScript + Tailwind CSS, bundled by Vite.
 
-## Особливості
+**Live demo:** _(GitHub Pages link appears after first deploy)_
 
-- **Використання fuzzyIS бібліотеки**: Проект використовує професійну бібліотеку fuzzyIS для реалізації нечіткої логіки
-- **Node.js архітектура**: Серверна частина на Node.js з Express.js
-- **Інтерактивна візуалізація**: Реальний час оновлення графіків функцій приналежності
-- **27 правил нечіткого виводу**: Повна база правил для визначення вірогідності системи
-- **Responsive дизайн**: Адаптивний інтерфейс для різних пристроїв
+[English](#english) · [Українська](#українська)
 
-## Технічні характеристики
+---
 
-### Вхідні параметри (0-100):
-- **Залишкова Енергія (E)** - Residual Energy
-- **Коефіцієнт Передавання (T)** - Transmission Coefficient
-- **Коефіцієнт Затримки (D)** - Delay Coefficient
+## English
 
-### Вихідний параметр (0-100):
-- **Вірогідність (P)** - Probability
+### What it does
 
-### Лінгвістичні терми:
+Given three inputs — Residual Energy (E), Transmission Coefficient (T), Delay Coefficient (D), all in `[0, 100]` — the system computes a Probability `P ∈ [0, 100]` using 27 fuzzy rules and centroid defuzzification. The UI shows:
 
-**Для вхідних змінних:**
-- Low (Мала) - трапецоїдальна функція
-- Medium (Середня) - трапецоїдальна функція
-- High (Велика) - трапецоїдальна функція
+- inputs as sliders and numeric fields,
+- membership graphs for each variable with hover tooltips,
+- the degree of membership of each term for the current inputs and output,
+- the crisp result and the most-active output term,
+- the rule base (highlighted rules whose firing strength > 0.5),
+- a "Show formulas" modal rendering the membership functions and rules in LaTeX (via KaTeX), with a PDF download,
+- an "Export PDF" button that saves a one-page summary of the calculation.
 
-**Для вихідної змінної:**
-- VeryLow (Дуже Мала) - трикутна функція
-- Low (Мала) - трикутна функція
-- Medium (Середня) - трикутна функція
-- High (Велика) - трикутна функція
-- VeryHigh (Дуже Велика) - трикутна функція
+Language can be switched between Ukrainian (default) and English; the choice persists in `localStorage`.
 
-### Функції приналежності:
+### Extending with another fuzzy system
 
-**Залишкова Енергія (E):**
-- Мала: [0, 0, 10, 30]
-- Середня: [10, 30, 50, 70]
-- Велика: [50, 70, 100, 100]
+Each system is a single data file in `src/fuzzy/systems/`. Add a file that exports a `FuzzySystem` (see `src/fuzzy/types.ts`) and register it in `src/fuzzy/systems/index.ts`. The UI auto-renders a new tab.
 
-**Коефіцієнт Передавання (T):**
-- Малий: [0, 0, 20, 40]
-- Середній: [20, 40, 60, 80]
-- Великий: [60, 80, 100, 100]
+### Commands
 
-**Коефіцієнт Затримки (D):**
-- Малий: [0, 0, 30, 50]
-- Середній: [30, 50, 70, 90]
-- Великий: [70, 90, 100, 100]
-
-**Вірогідність (P):**
-- Дуже Мала: [0, 0, 25]
-- Мала: [0, 25, 50]
-- Середня: [25, 50, 75]
-- Велика: [50, 75, 100]
-- Дуже Велика: [75, 100, 100]
-
-## Встановлення та запуск
-
-### Вимоги
-- Node.js (версія 14 або вище)
-- npm або yarn
-
-### Кроки встановлення
-
-1. **Клонувати репозиторій або завантажити файли**
-
-2. **Встановити залежності:**
 ```bash
 npm install
+npm run dev          # local dev server
+npm run build        # production build to dist/
+npm run preview      # preview dist/ locally
+npm run test         # run Vitest suite
+npm run test:watch   # watch-mode tests
+npm run typecheck    # tsc --noEmit
 ```
 
-3. **Запустити сервер:**
+### Deployment
+
+`.github/workflows/deploy.yml` builds on push to `main` and publishes `dist/` to GitHub Pages.
+
+### Project layout
+
+```
+src/
+  fuzzy/        engine + types + system definitions (data-driven)
+  i18n/         i18next setup + uk/en locale JSON
+  components/   mount-fn style components (no framework)
+  utils/        PDF export + LaTeX helpers
+  styles/       Tailwind entry
+tests/          Vitest suite (ported from legacy __tests__/)
+references/     PDFs with formulas and membership-function diagrams
+```
+
+### Reference material
+
+The `references/` folder holds PDFs and diagrams of the formulas used. The PhD manuscript itself is *not* committed — `.gitignore` excludes files matching `*_thesis.*`, `*_phd.*`, and the `/private/` folder.
+
+---
+
+## Українська
+
+### Що це
+
+Нечіткий логічний контролер (3 входи → 1 вихід) для обчислення вірогідності системи зв'язку на основі залишкової енергії (E), коефіцієнта передавання (T) та коефіцієнта затримки (D). Використовує `@thi.ng/fuzzy` з центроїдною дефазифікацією. Інтерфейс — ванільний TypeScript + Tailwind CSS, збірка через Vite. Весь застосунок — статичний SPA без серверної частини, розгортається на GitHub Pages.
+
+### Можливості
+
+- Повзунки та числові поля для введення значень у діапазоні `[0, 100]`.
+- Графіки функцій приналежності з інтерактивними підказками.
+- Перегляд ступенів приналежності для кожного терма кожної змінної.
+- База з 27 правил (правила з силою спрацьовування > 0.5 підсвічуються).
+- Модальне вікно «Показати формули» з LaTeX-рендерингом (KaTeX) та експортом у PDF.
+- Кнопка «Експортувати PDF» зберігає односторінковий звіт обчислення.
+- Перемикання мови: українська (типова) / English — вибір зберігається у `localStorage`.
+
+### Як додати ще одну нечітку систему
+
+Кожна система — окремий файл у `src/fuzzy/systems/`, що експортує об'єкт типу `FuzzySystem` (див. `src/fuzzy/types.ts`). Додайте файл і зареєструйте в `src/fuzzy/systems/index.ts` — інтерфейс автоматично створить нову вкладку.
+
+### Команди
+
 ```bash
-npm start
+npm install
+npm run dev          # локальний dev-сервер
+npm run build        # продакшн-збірка в dist/
+npm run preview      # локальний перегляд dist/
+npm run test         # прогін тестів Vitest
+npm run typecheck    # перевірка типів TypeScript
 ```
 
-4. **Для розробки з автоперезавантаженням:**
-```bash
-npm run dev
-```
+### Довідкові матеріали
 
-5. **Запуск тестів:**
-```bash
-npm test
-```
-
-6. **Запуск тестів у режимі спостереження:**
-```bash
-npm run test:watch
-```
-
-7. **Відкрити браузер:**
-```
-http://localhost:3000
-```
-
-## Структура проекту
-
-```
-fuzzy-logic-security-risk/
-├── package.json              # Конфігурація npm
-├── server.js                 # Серверна частина Express
-├── fuzzyController.js        # Логіка нечіткого виводу
-├── jest.config.js            # Конфігурація тестів
-├── .gitignore                # Git виключення
-├── __tests__/                # Тестові файли
-│   ├── fuzzyController.test.js
-│   ├── probability.test.js
-│   └── integration.test.js
-├── public/                   # Клієнтські файли
-│   ├── index.html           # HTML інтерфейс
-│   ├── style.css            # Стилі CSS
-│   └── script.js            # Клієнтський JavaScript
-├── docs/                     # Документація
-│   ├── controller_data_v2_1.jpeg
-│   ├── controller_data_v2_2.jpeg
-│   ├── rule_v2.jpeg
-│   └── membership_functions.png
-└── README.md                # Документація
-```
-
-## API Endpoints
-
-### POST /api/calculate
-Обчислює вірогідність системи на основі вхідних параметрів.
-
-**Запит:**
-```json
-{
-  "residualEnergy": 50,
-  "transmissionCoefficient": 60,
-  "delayCoefficient": 45
-}
-```
-
-**Відповідь:**
-```json
-{
-  "probability": 62.15,
-  "mostActiveTerm": "Medium",
-  "membershipData": {
-    "residualEnergy": {...},
-    "transmissionCoefficient": {...},
-    "delayCoefficient": {...},
-    "probability": {...}
-  }
-}
-```
-
-### GET /api/membership-functions
-Отримує дані функцій приналежності для побудови графіків.
-
-## База правил
-
-Система використовує 27 правил нечіткого виводу:
-
-### Правила для малої залишкової енергії (E = Low):
-| № | T | D | P |
-|---|---|---|---|
-| 1 | Малий | Малий | Мала |
-| 2 | Малий | Середній | Дуже мала |
-| 3 | Малий | Великий | Дуже мала |
-| 4 | Середній | Малий | Дуже мала |
-| 5 | Середній | Середній | Дуже мала |
-| 6 | Середній | Великий | Дуже мала |
-| 7 | Великий | Малий | Мала |
-| 8 | Великий | Середній | Мала |
-| 9 | Великий | Великий | Мала |
-
-### Правила для середньої залишкової енергії (E = Medium):
-| № | T | D | P |
-|---|---|---|---|
-| 10 | Малий | Малий | Середня |
-| 11 | Малий | Середній | Мала |
-| 12 | Малий | Великий | Мала |
-| 13 | Середній | Малий | Середня |
-| 14 | Середній | Середній | Середня |
-| 15 | Середній | Великий | Середня |
-| 16 | Великий | Малий | Велика |
-| 17 | Великий | Середній | Велика |
-| 18 | Великий | Великий | Середня |
-
-### Правила для великої залишкової енергії (E = High):
-| № | T | D | P |
-|---|---|---|---|
-| 19 | Малий | Малий | Велика |
-| 20 | Малий | Середній | Велика |
-| 21 | Малий | Великий | Велика |
-| 22 | Середній | Малий | Дуже велика |
-| 23 | Середній | Середній | Дуже велика |
-| 24 | Середній | Великий | Дуже велика |
-| 25 | Великий | Малий | Дуже велика |
-| 26 | Великий | Середній | Дуже велика |
-| 27 | Великий | Великий | Велика |
-
-## Функціональність інтерфейсу
-
-1. **Вхідні параметри**: Числові поля для введення значень E, T, D
-2. **Автоматичний розрахунок**: Результат оновлюється в реальному часі
-3. **Візуалізація**: 4 графіки функцій приналежності з позначенням поточних значень
-4. **Значення приналежності**: Відображення ступеня приналежності для всіх термів
-5. **Виділення активного терма**: Підсвічування найактивнішого вихідного терма
-
-## Технічні деталі
-
-### Методи нечіткого виводу:
-- **Фазифікація**: Обчислення ступеня приналежності вхідних значень
-- **Агрегація**: Операція AND (мінімум)
-- **Імплікація**: Метод Мамдані
-- **Акумуляція**: Операція MAX (максимум)
-- **Дефазифікація**: Метод центру ваги (centroid)
-
-### Бібліотеки:
-- **fuzzyIS**: Основна бібліотека для нечіткої логіки
-- **Express.js**: Веб-сервер
-- **Canvas API**: Візуалізація графіків
-
-## Тестування
-
-Проект покритий комплексними юніт тестами, які перевіряють:
-
-### Типи тестів:
-- **Функції приналежності**: Трапецоїдальні та трикутні функції
-- **Нечіткі обчислення**: Повний цикл fuzzy inference
-- **Граничні випадки**: Мінімальні/максимальні значення
-- **Ключові правила виводу**: Перевірка найважливіших правил
-- **Інтеграційні тести**: End-to-end тестування системи
-
-### Команди тестування:
-```bash
-# Запуск всіх тестів
-npm test
-
-# Запуск з покриттям коду
-npm run test:coverage
-
-# Запуск конкретного тесту
-npm test -- fuzzyController.test.js
-
-# Режим спостереження (автоматичний перезапуск)
-npm run test:watch
-```
-
-### Покриття коду:
-Покриття коду за замовчуванням вимкнено для швидкості розробки.
-Для генерації звіту використовуйте `npm run test:coverage`.
-
-Звіт про покриття генерується в папці `coverage/`
-
-## Розробка
-
-### Додавання нових правил:
-Редагуйте масив `fuzzySystem.rules` в `fuzzyController.js`
-
-### Зміна функцій приналежності:
-Модифікуйте параметри в `fuzzyController.js` (функції `addTerm`)
-
-### Оновлення інтерфейсу:
-Редагуйте файли в папці `public/`
-
-## Автор
-
-Volodymyr Martyniuk
-
-## Ліцензія
-
-MIT License
+Папка `references/` містить PDF-файли з формулами та діаграмами функцій приналежності. Текст дисертації **не** комітиться — `.gitignore` виключає файли з масками `*_thesis.*`, `*_phd.*` та теку `/private/`.

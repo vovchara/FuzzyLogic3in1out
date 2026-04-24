@@ -1,0 +1,72 @@
+{
+  "app": {
+    "title": "Fuzzy Logic Controller",
+    "subtitle": "3 inputs → 1 output"
+  },
+  "actions": {
+    "calculate": "Calculate",
+    "exportPdf": "Export PDF",
+    "showFormulas": "Show formulas",
+    "downloadPdf": "Download PDF",
+    "close": "Close",
+    "reset": "Reset"
+  },
+  "panels": {
+    "inputs": "Inputs",
+    "output": "Output",
+    "memberships": "Memberships",
+    "graphs": "Membership functions",
+    "rules": "Fuzzy inference rules"
+  },
+  "output": {
+    "result": "Probability",
+    "mostActive": "Most active term",
+    "empty": "–"
+  },
+  "terms": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "veryLow": "Very low",
+    "veryHigh": "Very high"
+  },
+  "systems": {
+    "commCtrl": {
+      "name": "Communication System Probability",
+      "description": "Probability evaluation based on residual energy, transmission coefficient, and delay coefficient.",
+      "variables": {
+        "residualEnergy": "Residual Energy (E)",
+        "transmissionCoefficient": "Transmission Coefficient (T)",
+        "delayCoefficient": "Delay Coefficient (D)",
+        "probability": "Probability (P)"
+      }
+    }
+  },
+  "formulas": {
+    "title": "Formulas",
+    "variablesSection": "Linguistic variables and membership functions",
+    "rulesSection": "Rule base",
+    "domain": "Domain"
+  },
+  "rule": {
+    "if": "IF",
+    "and": "AND",
+    "then": "THEN",
+    "is": "="
+  },
+  "languages": {
+    "ua": "Українська",
+    "en": "English"
+  },
+  "errors": {
+    "outOfRange": "Values must be in range {{min}}–{{max}}",
+    "invalidNumber": "Invalid numeric value"
+  },
+  "pdf": {
+    "generatedAt": "Generated at",
+    "system": "System",
+    "inputs": "Inputs",
+    "result": "Result",
+    "memberships": "Memberships"
+  }
+}

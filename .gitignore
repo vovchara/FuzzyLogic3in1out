@@ -82,6 +82,14 @@ typings/
 # Claude Code
 .claude/
 
+# Build output
+dist/
+
+# PhD thesis / private manuscript — kept local, never tracked
+*_thesis.*
+*_phd.*
+/private/
+
 # OS generated files
 .DS_Store
 .DS_Store?
