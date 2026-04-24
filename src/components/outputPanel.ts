@@ -11,14 +11,19 @@ export function mountOutputPanel(
   container.innerHTML = `
     <h2 class="card-title" data-i18n="panels.output"></h2>
     <div class="mt-3 grid gap-3">
-      <div class="flex items-baseline gap-3">
-        <span class="text-sm text-slate-500" data-i18n="output.result"></span>
+      <div class="flex items-baseline gap-3 flex-wrap">
+        <span class="text-sm text-slate-500" data-i18n="${system.output.nameKey}"></span>
         <span class="text-3xl font-semibold tabular-nums" data-result>–</span>
-        <span class="text-sm text-slate-400">/ 100</span>
+        <span class="text-sm text-slate-400">/ ${system.output.range[1]}</span>
       </div>
       <div class="flex items-baseline gap-3">
         <span class="text-sm text-slate-500" data-i18n="output.mostActive"></span>
         <span class="font-medium" data-active-term>–</span>
+      </div>
+      <div class="flex items-baseline gap-2 text-xs text-slate-500">
+        <span data-i18n="output.defuzz"></span>
+        <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-medium"
+              data-i18n="output.defuzzMethod.${system.defuzz}"></span>
       </div>
       <button type="button" data-export
         class="mt-2 self-start px-3 py-1.5 text-sm rounded-md bg-slate-900 text-white hover:bg-slate-800 transition disabled:opacity-50"

@@ -121,6 +121,29 @@ function drawTermCurve(
   xMax: number,
   highlighted: boolean,
 ): void {
+  if (term.shape.kind === "singleton") {
+    const at = term.shape.at;
+    if (at < xMin || at > xMax) return;
+    const x = toX(at);
+    const y0 = toY(0);
+    const y1 = toY(1);
+
+    ctx.beginPath();
+    ctx.strokeStyle = term.color;
+    ctx.lineWidth = highlighted ? 3 : 2;
+    ctx.setLineDash(highlighted ? [] : [2, 3]);
+    ctx.moveTo(x, y0);
+    ctx.lineTo(x, y1);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.beginPath();
+    ctx.fillStyle = term.color;
+    ctx.arc(x, y1, highlighted ? 5 : 3.5, 0, Math.PI * 2);
+    ctx.fill();
+    return;
+  }
+
   const steps = 100;
   const samples: { x: number; y: number; m: number }[] = [];
   for (let i = 0; i <= steps; i++) {

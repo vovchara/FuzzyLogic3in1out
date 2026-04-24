@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Fuzzy Logic Controller",
+    "title": "Fuzzy Logic Controllers",
     "subtitle": "3 inputs → 1 output"
   },
   "actions": {
@@ -19,26 +19,57 @@
     "rules": "Fuzzy inference rules"
   },
   "output": {
-    "result": "Probability",
+    "result": "Value",
     "mostActive": "Most active term",
-    "empty": "–"
+    "empty": "–",
+    "defuzz": "Defuzzification method",
+    "defuzzMethod": {
+      "centroid": "Centroid",
+      "bisector": "Bisector",
+      "weighted-average": "Weighted average"
+    }
   },
   "terms": {
     "low": "Low",
     "medium": "Medium",
     "high": "High",
     "veryLow": "Very low",
-    "veryHigh": "Very high"
+    "veryHigh": "Very high",
+    "small": "Small",
+    "large": "Large",
+    "verySmall": "Very small",
+    "veryLarge": "Very large",
+    "none": "None"
   },
   "systems": {
     "commCtrl": {
-      "name": "Communication System Probability",
+      "name": "Communication probability",
       "description": "Probability evaluation based on residual energy, transmission coefficient, and delay coefficient.",
       "variables": {
         "residualEnergy": "Residual Energy (E)",
         "transmissionCoefficient": "Transmission Coefficient (T)",
         "delayCoefficient": "Delay Coefficient (D)",
         "probability": "Probability (P)"
+      }
+    },
+    "routing": {
+      "name": "Route status",
+      "description": "Route status evaluation based on energy, distance, and node reputation.",
+      "variables": {
+        "energy": "Energy (E)",
+        "distance": "Distance (D)",
+        "reputation": "Reputation (R)",
+        "routeStatus": "Route Status (S)"
+      }
+    },
+    "aggregation": {
+      "name": "Aggregation",
+      "description": "Data aggregation level based on energy, reputation, and load.",
+      "variables": {
+        "energy": "Energy (E)",
+        "reputation": "Reputation (R)",
+        "load": "Load (T)",
+        "aggregation": "Aggregation (A)"
       }
     }
   },

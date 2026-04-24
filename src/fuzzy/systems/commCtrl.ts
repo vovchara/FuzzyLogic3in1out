@@ -48,6 +48,7 @@ export const commCtrlSystem: FuzzySystem = {
   id: "commCtrl",
   nameKey: `${ns}.name`,
   descriptionKey: `${ns}.description`,
+  defuzz: "centroid",
   inputs: [
     {
       id: "E",

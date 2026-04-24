@@ -1,34 +1,45 @@
 import type { FuzzyRule, FuzzySystem, FuzzyTerm, FuzzyVariable, MembershipShape } from "../fuzzy/types";
 
 export function shapeToLatex(shape: MembershipShape): string {
-  if (shape.kind === "trapezoid") {
-    const [a, b, c, d] = shape.points;
-    return String.raw`\mu(x) = \begin{cases}
-      0 & x \le ${a} \\[2pt]
-      \dfrac{x - ${a}}{${b} - ${a}} & ${a} < x < ${b} \\[2pt]
-      1 & ${b} \le x \le ${c} \\[2pt]
-      \dfrac{${d} - x}{${d} - ${c}} & ${c} < x < ${d} \\[2pt]
-      0 & x \ge ${d}
-    \end{cases}`;
+  switch (shape.kind) {
+    case "trapezoid": {
+      const [a, b, c, d] = shape.points;
+      return String.raw`\mu(x) = \begin{cases}
+        0 & x \le ${a} \\[2pt]
+        \dfrac{x - ${a}}{${b} - ${a}} & ${a} < x < ${b} \\[2pt]
+        1 & ${b} \le x \le ${c} \\[2pt]
+        \dfrac{${d} - x}{${d} - ${c}} & ${c} < x < ${d} \\[2pt]
+        0 & x \ge ${d}
+      \end{cases}`;
+    }
+    case "triangle": {
+      const [a, b, c] = shape.points;
+      if (a === b) {
+        return String.raw`\mu(x) = \begin{cases}
+          \dfrac{${c} - x}{${c} - ${a}} & ${a} \le x < ${c} \\[2pt]
+          0 & \text{otherwise}
+        \end{cases}`;
+      }
+      if (b === c) {
+        return String.raw`\mu(x) = \begin{cases}
+          \dfrac{x - ${a}}{${b} - ${a}} & ${a} < x \le ${b} \\[2pt]
+          0 & \text{otherwise}
+        \end{cases}`;
+      }
+      return String.raw`\mu(x) = \begin{cases}
+        \dfrac{x - ${a}}{${b} - ${a}} & ${a} \le x \le ${b} \\[2pt]
+        \dfrac{${c} - x}{${c} - ${b}} & ${b} < x \le ${c} \\[2pt]
+        0 & \text{otherwise}
+      \end{cases}`;
+    }
+    case "gaussian":
+      return String.raw`\mu(x) = \exp\!\left( -\dfrac{(x - ${shape.bias})^{2}}{2 \cdot ${shape.sigma}^{2}} \right)`;
+    case "singleton":
+      return String.raw`\mu(x) = \begin{cases}
+        1 & x = ${shape.at} \\[2pt]
+        0 & \text{otherwise}
+      \end{cases}`;
   }
-  const [a, b, c] = shape.points;
-  if (a === b) {
-    return String.raw`\mu(x) = \begin{cases}
-      \dfrac{${c} - x}{${c} - ${a}} & ${a} \le x < ${c} \\[2pt]
-      0 & \text{otherwise}
-    \end{cases}`;
-  }
-  if (b === c) {
-    return String.raw`\mu(x) = \begin{cases}
-      \dfrac{x - ${a}}{${b} - ${a}} & ${a} < x \le ${b} \\[2pt]
-      0 & \text{otherwise}
-    \end{cases}`;
-  }
-  return String.raw`\mu(x) = \begin{cases}
-    \dfrac{x - ${a}}{${b} - ${a}} & ${a} \le x \le ${b} \\[2pt]
-    \dfrac{${c} - x}{${c} - ${b}} & ${b} < x \le ${c} \\[2pt]
-    0 & \text{otherwise}
-  \end{cases}`;
 }
 
 export function termToLatex(term: FuzzyTerm): string {
