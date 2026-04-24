@@ -2,7 +2,7 @@
 
 A static SPA that demonstrates a Mamdani-style fuzzy inference system with 3 inputs and 1 output, built for PhD study use. Uses `@thi.ng/fuzzy` with centroid defuzzification; UI written in Vanilla TypeScript + Tailwind CSS, bundled by Vite.
 
-**Live demo:** _(GitHub Pages link appears after first deploy)_
+**Live demo:** https://vovchara.github.io/FuzzyLogic3in1out/
 
 [English](#english) · [Українська](#українська)
 
