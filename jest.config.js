@@ -9,8 +9,7 @@ module.exports = {
     '*.js',
     '!server.js',
     '!jest.config.js',
-    '!coverage/**',
-    '!membership_adjustment_example.js'
+    '!coverage/**'
   ],
   // Дозволяємо Jest трансформувати ES модулі з @thi.ng пакетів
   transformIgnorePatterns: [

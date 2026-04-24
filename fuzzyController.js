@@ -169,28 +169,15 @@ function calculateProbability(residualEnergyVal, transmissionCoefficientVal, del
 
 // Функція для обчислення ступенів приналежності
 function calculateMembershipValues(variableName, value) {
+  const params = membershipParams[variableName];
+  if (!params) return {};
+
   const memberships = {};
-  
-  if (variableName === "residualEnergy") {
-    memberships.Low = trapezoidalMF(value, 0, 0, 10, 30);
-    memberships.Medium = trapezoidalMF(value, 10, 30, 50, 70);
-    memberships.High = trapezoidalMF(value, 50, 70, 100, 100);
-  } else if (variableName === "transmissionCoefficient") {
-    memberships.Low = trapezoidalMF(value, 0, 0, 20, 40);
-    memberships.Medium = trapezoidalMF(value, 20, 40, 60, 80);
-    memberships.High = trapezoidalMF(value, 60, 80, 100, 100);
-  } else if (variableName === "delayCoefficient") {
-    memberships.Low = trapezoidalMF(value, 0, 0, 30, 50);
-    memberships.Medium = trapezoidalMF(value, 30, 50, 70, 90);
-    memberships.High = trapezoidalMF(value, 70, 90, 100, 100);
-  } else if (variableName === "probability") {
-    memberships.VeryLow = triangularMF(value, 0, 0, 25);
-    memberships.Low = triangularMF(value, 0, 25, 50);
-    memberships.Medium = triangularMF(value, 25, 50, 75);
-    memberships.High = triangularMF(value, 50, 75, 100);
-    memberships.VeryHigh = triangularMF(value, 75, 100, 100);
+  for (const [term, { type, params: p }] of Object.entries(params)) {
+    memberships[term] = type === 'trapeze'
+      ? trapezoidalMF(value, ...p)
+      : triangularMF(value, ...p);
   }
-  
   return memberships;
 }
 

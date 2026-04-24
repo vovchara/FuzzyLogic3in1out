@@ -69,10 +69,6 @@ async function loadMembershipFunctions() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     membershipFunctionsData = await response.json();
-    console.log(
-      "Membership functions loaded from server:",
-      membershipFunctionsData
-    );
   } catch (error) {
     console.error("Error loading membership functions:", error);
     showError("Помилка завантаження даних з сервера");
@@ -106,7 +102,6 @@ async function calculateFuzzyResult(
     }
 
     const result = await response.json();
-    console.log("Calculation result from server:", result);
     return result;
   } catch (error) {
     console.error("Error calculating fuzzy result:", error);
@@ -138,25 +133,15 @@ function debounceCalculation() {
 
 // --- Main Calculation Function ---
 async function calculateAndDisplayFuzzyOutput() {
-  console.log("🧮 Початок обчислення...");
-
   const residualEnergyVal = parseFloat(residualEnergyInput.value);
   const transmissionCoefficientVal = parseFloat(transmissionCoefficientInput.value);
   const delayCoefficientVal = parseFloat(delayCoefficientInput.value);
 
-  console.log("📊 Вхідні дані:", {
-    residualEnergyVal,
-    transmissionCoefficientVal,
-    delayCoefficientVal,
-  });
-
-  // Валідація вхідних даних
   if (
     isNaN(residualEnergyVal) ||
     isNaN(transmissionCoefficientVal) ||
     isNaN(delayCoefficientVal)
   ) {
-    console.error("❌ Некоректні вхідні дані");
     showError("Некоректні вхідні дані");
     return;
   }
@@ -169,23 +154,17 @@ async function calculateAndDisplayFuzzyOutput() {
     delayCoefficientVal < 0 ||
     delayCoefficientVal > 100
   ) {
-    console.error("❌ Значення поза діапазоном 0-100");
     showError("Всі значення повинні бути в діапазоні 0-100");
     return;
   }
 
   try {
-    console.log("📡 Відправка запиту на сервер...");
-    // Відправляємо запит на сервер для обчислення
     const result = await calculateFuzzyResult(
       residualEnergyVal,
       transmissionCoefficientVal,
       delayCoefficientVal
     );
 
-    console.log("✅ Результат отримано:", result);
-
-    // Зберігаємо результат
     currentCalculation = {
       probability: result.probability,
       mostActiveTerm: result.mostActiveTerm,
@@ -193,22 +172,13 @@ async function calculateAndDisplayFuzzyOutput() {
       inputValues: result.inputValues,
     };
 
-    console.log("💾 Збережено результат:", currentCalculation);
-
-    // Відображення результатів
     probabilityOutputSpan.textContent = currentCalculation.probability;
     activeOutputTermSpan.textContent = translateTerm(
       currentCalculation.mostActiveTerm
     );
 
-    console.log("📝 Оновлено UI результатів");
-
-    // Оновлення відображення приналежності
     updateMembershipDisplay(currentCalculation.membershipData);
 
-    console.log("📊 Оновлено відображення приналежності");
-
-    // Перемалювання графіків з поточними значеннями
     drawAllGraphs(
       residualEnergyVal,
       transmissionCoefficientVal,
@@ -217,12 +187,9 @@ async function calculateAndDisplayFuzzyOutput() {
       currentCalculation.mostActiveTerm
     );
 
-    // Очистити повідомлення про помилку
     clearError();
-
-    console.log("✅ Обчислення завершено успішно");
   } catch (error) {
-    console.error("❌ Error calculating result:", error);
+    console.error("Error calculating result:", error);
     showError("Помилка при обчисленні результату: " + error.message);
   }
 }
@@ -305,39 +272,16 @@ function drawAllGraphs(
   pVal = null,
   activeTerm = null
 ) {
-  console.log("🎨 Малювання графіків:", {
-    eVal,
-    tVal,
-    dVal,
-    pVal,
-    activeTerm,
-  });
-
   if (!membershipFunctionsData) {
-    console.warn("⚠️ Membership functions data not loaded yet");
+    console.warn("Membership functions data not loaded yet");
     return;
   }
 
-  console.log("📊 Дані для малювання:", membershipFunctionsData);
-
-  // Визначаємо активні терми для кожної вхідної змінної
-  let activeResidualEnergyTerm = null;
-  let activeTransmissionCoefficientTerm = null;
-  let activeDelayCoefficientTerm = null;
-
-  if (currentCalculation && currentCalculation.membershipData) {
-    // Знаходимо найактивніший терм для кожної вхідної змінної
-    activeResidualEnergyTerm = getMostActiveTermFromData(currentCalculation.membershipData.residualEnergy);
-    activeTransmissionCoefficientTerm = getMostActiveTermFromData(currentCalculation.membershipData.transmissionCoefficient);
-    activeDelayCoefficientTerm = getMostActiveTermFromData(currentCalculation.membershipData.delayCoefficient);
-  }
-
-  drawMembershipGraph("residualEnergy", eVal, activeResidualEnergyTerm);
-  drawMembershipGraph("transmissionCoefficient", tVal, activeTransmissionCoefficientTerm);
-  drawMembershipGraph("delayCoefficient", dVal, activeDelayCoefficientTerm);
+  const md = currentCalculation?.membershipData;
+  drawMembershipGraph("residualEnergy", eVal, md ? getMostActiveTermFromData(md.residualEnergy) : null);
+  drawMembershipGraph("transmissionCoefficient", tVal, md ? getMostActiveTermFromData(md.transmissionCoefficient) : null);
+  drawMembershipGraph("delayCoefficient", dVal, md ? getMostActiveTermFromData(md.delayCoefficient) : null);
   drawMembershipGraph("probability", pVal, activeTerm);
-
-  console.log("✅ Графіки намальовані");
 }
 
 function drawMembershipGraph(
@@ -773,54 +717,8 @@ function positionTooltip(tooltip, mouseX, mouseY) {
   return { x, y };
 }
 
-// --- Export Functions ---
-function exportResults() {
-  if (!currentCalculation) {
-    showError("Немає даних для експорту");
-    return;
-  }
-
-  const data = {
-    inputs: {
-      residualEnergy: parseFloat(residualEnergyInput.value),
-      transmissionCoefficient: parseFloat(transmissionCoefficientInput.value),
-      delayCoefficient: parseFloat(delayCoefficientInput.value),
-    },
-    output: {
-      probability: currentCalculation.probability,
-      mostActiveTerm: currentCalculation.mostActiveTerm,
-    },
-    membershipValues: currentCalculation.membershipData,
-    timestamp: new Date().toISOString(),
-  };
-
-  const blob = new Blob([JSON.stringify(data, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `fuzzy_results_${new Date()
-    .toISOString()
-    .slice(0, 19)
-    .replace(/:/g, "-")}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("🚀 Ініціалізація додатку...");
-  console.log("DOM елементи:", {
-    residualEnergyInput: !!residualEnergyInput,
-    transmissionCoefficientInput: !!transmissionCoefficientInput,
-    delayCoefficientInput: !!delayCoefficientInput,
-    canvases: Object.keys(canvases).map((key) => ({
-      [key]: !!canvases[key].canvas,
-    })),
-  });
-
-  // Встановити початкові значення
   if (eValue && residualEnergyInput) {
     eValue.textContent = residualEnergyInput.value;
   }
@@ -832,27 +730,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    // Завантажити дані функцій приналежності з сервера
-    console.log("📡 Завантаження функцій приналежності...");
     await loadMembershipFunctions();
 
-    if (membershipFunctionsData) {
-      console.log("✅ Функції приналежності завантажено успішно");
-    } else {
-      console.error("❌ Функції приналежності не завантажились");
+    if (!membershipFunctionsData) {
+      console.error("Membership functions failed to load");
     }
 
-    // Налаштувати tooltip для графіків
-    console.log("🖱️ Налаштування tooltips...");
     setupCanvasTooltips();
-
-    // Виконати початковий розрахунок
-    console.log("🧮 Початковий розрахунок...");
     await calculateAndDisplayFuzzyOutput();
-
-    console.log("✅ Додаток успішно ініціалізовано");
   } catch (error) {
-    console.error("❌ Помилка ініціалізації:", error);
+    console.error("Initialization error:", error);
     showError("Помилка ініціалізації додатку: " + error.message);
   }
 });
