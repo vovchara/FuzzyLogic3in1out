@@ -29,6 +29,7 @@ export const aggregationSystem: FuzzySystem = {
   nameKey: `${ns}.name`,
   descriptionKey: `${ns}.description`,
   defuzz: "weighted-average",
+  draft: true,
   inputs: [
     {
       id: "E",

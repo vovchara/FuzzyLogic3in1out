@@ -89,6 +89,10 @@
     "ua": "Українська",
     "en": "English"
   },
+  "status": {
+    "draft": "Draft",
+    "draftBanner": "This controller is in draft mode — formulas and rules pending verification."
+  },
   "errors": {
     "outOfRange": "Values must be in range {{min}}–{{max}}",
     "invalidNumber": "Invalid numeric value"

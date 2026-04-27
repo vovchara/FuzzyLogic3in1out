@@ -39,6 +39,7 @@ export interface FuzzySystem {
   readonly inputs: readonly FuzzyVariable[];
   readonly output: FuzzyVariable;
   readonly rules: readonly FuzzyRule[];
+  readonly draft?: boolean;
 }
 
 export interface FuzzyEvaluation {

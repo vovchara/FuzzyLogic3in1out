@@ -16,7 +16,14 @@ export function mountFuzzyTab(container: HTMLElement, ctx: AppShellCtx): Unmount
     for (const u of childUnmounts) u();
     childUnmounts = [];
 
+    const draftBanner = system.draft
+      ? `<div class="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 mb-4 flex items-start gap-2">
+          <span class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 mt-0.5" data-i18n="status.draft"></span>
+          <span data-i18n="status.draftBanner"></span>
+        </div>`
+      : "";
     container.innerHTML = `
+      ${draftBanner}
       <div class="grid gap-4 md:grid-cols-2">
         <section id="inputsPanel" class="card"></section>
         <section id="outputPanel" class="card"></section>
