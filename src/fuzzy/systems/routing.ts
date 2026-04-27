@@ -31,6 +31,7 @@ export const routingSystem: FuzzySystem = {
   nameKey: `${ns}.name`,
   descriptionKey: `${ns}.description`,
   defuzz: "bisector",
+  draft: true,
   inputs: [
     {
       id: "E",
