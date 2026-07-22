@@ -2,37 +2,37 @@ import { describe, expect, test } from "vitest";
 import { membershipsFor } from "../src/fuzzy/engine";
 import { commCtrlSystem } from "../src/fuzzy/systems/commCtrl";
 
-const [E, T, D] = commCtrlSystem.inputs;
-const P = commCtrlSystem.output;
+const [En, PDR, TD] = commCtrlSystem.inputs;
+const ChP = commCtrlSystem.output;
 
 describe("Calculate membership values", () => {
-  test("residualEnergy at x=20", () => {
-    const m = membershipsFor(E, 20);
-    expect(m.Low).toBeCloseTo(0.5, 2);
-    expect(m.Medium).toBeCloseTo(0.5, 2);
+  test("residualEnergy (En) at x=0.3", () => {
+    const m = membershipsFor(En, 0.3);
+    expect(m.Low).toBeCloseTo(0.5, 5);
+    expect(m.Medium).toBeCloseTo(0.5, 5);
     expect(m.High).toBe(0);
   });
 
-  test("transmissionCoefficient at x=30", () => {
-    const m = membershipsFor(T, 30);
-    expect(m.Low).toBeCloseTo(0.5, 2);
-    expect(m.Medium).toBeCloseTo(0.5, 2);
+  test("packetDeliveryRatio (PDR) at x=0.4", () => {
+    const m = membershipsFor(PDR, 0.4);
+    expect(m.Low).toBeCloseTo(0.5, 5);
+    expect(m.Medium).toBeCloseTo(0.5, 5);
     expect(m.High).toBe(0);
   });
 
-  test("delayCoefficient at x=40", () => {
-    const m = membershipsFor(D, 40);
-    expect(m.Low).toBeCloseTo(0.5, 2);
-    expect(m.Medium).toBeCloseTo(0.5, 2);
+  test("transmissionDelay (TD) at x=17.5", () => {
+    const m = membershipsFor(TD, 17.5);
+    expect(m.Low).toBeCloseTo(0.25, 5);
+    expect(m.Medium).toBeCloseTo(0.25, 5);
     expect(m.High).toBe(0);
   });
 
-  test("probability at x=37.5", () => {
-    const m = membershipsFor(P, 37.5);
-    expect(m.Low).toBeCloseTo(0.5, 2);
-    expect(m.Medium).toBeCloseTo(0.5, 2);
-    expect(m.VeryLow).toBe(0);
-    expect(m.High).toBe(0);
-    expect(m.VeryHigh).toBe(0);
+  test("probability (ChP) at x=37.5", () => {
+    const m = membershipsFor(ChP, 37.5);
+    expect(m.Small).toBeCloseTo(0.5, 5);
+    expect(m.Medium).toBeCloseTo(0.5, 5);
+    expect(m.VerySmall).toBe(0);
+    expect(m.Large).toBe(0);
+    expect(m.VeryLarge).toBe(0);
   });
 });

@@ -40,17 +40,20 @@
     "large": "Large",
     "verySmall": "Very small",
     "veryLarge": "Very large",
-    "none": "None"
+    "none": "None",
+    "smallM": "Small",
+    "mediumM": "Medium",
+    "largeM": "Large"
   },
   "systems": {
     "commCtrl": {
-      "name": "Communication probability",
-      "description": "Probability evaluation based on residual energy, transmission coefficient, and delay coefficient.",
+      "name": "Clustering",
+      "description": "Cluster head selection probability for a sensor node based on residual energy, packet delivery ratio, and transmission delay.",
       "variables": {
-        "residualEnergy": "Residual Energy (E)",
-        "transmissionCoefficient": "Transmission Coefficient (T)",
-        "delayCoefficient": "Delay Coefficient (D)",
-        "probability": "Probability (P)"
+        "residualEnergy": "Residual Energy (En)",
+        "packetDeliveryRatio": "Packet Delivery Ratio (PDR)",
+        "transmissionDelay": "Transmission Delay (TD)",
+        "probability": "Cluster Head Probability (ChP)"
       }
     },
     "routing": {

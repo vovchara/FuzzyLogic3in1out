@@ -3,10 +3,6 @@ import {
   bisectorStrategy,
   centroidStrategy,
   defuzz,
-  gaussian as gaussianFn,
-  point,
-  trapezoid,
-  triangle,
   variable,
   type LVar,
 } from "@thi.ng/fuzzy";
@@ -20,22 +16,13 @@ import type {
 const FALLBACK_OUTPUT = 25;
 const SINGLETON_EPS = 0.5;
 
-function shapeFn(shape: MembershipShape) {
-  switch (shape.kind) {
-    case "trapezoid":
-      return trapezoid(...shape.points);
-    case "triangle":
-      return triangle(...shape.points);
-    case "gaussian":
-      return gaussianFn(shape.bias, shape.sigma);
-    case "singleton":
-      return point(shape.at, SINGLETON_EPS);
-  }
-}
-
+// @thi.ng/fuzzy's own trapezoid()/triangle() mishandle a degenerate left
+// shoulder (a === b): they evaluate to 0 exactly at x = a instead of 1,
+// which skews centroid/bisector sums that sample that exact point. Our own
+// evaluateShape() below handles this correctly, so it's used here instead.
 function toLVar(v: FuzzyVariable): LVar<string> {
-  const terms: Record<string, ReturnType<typeof triangle>> = {};
-  for (const t of v.terms) terms[t.id] = shapeFn(t.shape);
+  const terms: Record<string, (x: number) => number> = {};
+  for (const t of v.terms) terms[t.id] = (x: number) => evaluateShape(t.shape, x);
   return variable([v.range[0], v.range[1]], terms);
 }
 
