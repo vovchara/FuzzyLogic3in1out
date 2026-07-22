@@ -1,6 +1,7 @@
 import { evaluateShape } from "../fuzzy/engine";
 import type { FuzzyTerm, FuzzyVariable } from "../fuzzy/types";
 import { t } from "../i18n";
+import { valueDecimals } from "../utils/format";
 
 interface GraphParams {
   variable: FuzzyVariable;
@@ -88,7 +89,7 @@ export function drawMembershipGraph({
     ctx.fillStyle = "#0f172a";
     ctx.font = "600 12px ui-sans-serif, system-ui";
     ctx.textAlign = "center";
-    ctx.fillText(currentValue.toFixed(1), x, paddingTop + graphHeight + 22);
+    ctx.fillText(currentValue.toFixed(valueDecimals(variable.range)), x, paddingTop + graphHeight + 22);
   }
 
   ctx.fillStyle = "#64748b";

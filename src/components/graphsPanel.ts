@@ -2,6 +2,7 @@ import { getMostActiveTerm, membershipsFor } from "../fuzzy/engine";
 import { q, qa } from "../dom";
 import { t } from "../i18n";
 import type { FuzzySystem, FuzzyVariable } from "../fuzzy/types";
+import { valueDecimals } from "../utils/format";
 import type { AppShellCtx, Unmount } from "./appShell";
 import { drawMembershipGraph } from "./membershipGraph";
 
@@ -90,7 +91,7 @@ export function mountGraphsPanel(
         )
         .join("");
       tip.innerHTML = `
-        <div class="font-semibold mb-1">${t(variable.nameKey)} = ${x.toFixed(1)}</div>
+        <div class="font-semibold mb-1">${t(variable.nameKey)} = ${x.toFixed(valueDecimals(variable.range))}</div>
         ${lines}
       `;
       tip.style.display = "block";

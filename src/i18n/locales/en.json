@@ -53,13 +53,13 @@
       }
     },
     "routing": {
-      "name": "Route status",
-      "description": "Route status evaluation based on energy, distance, and node reputation.",
+      "name": "Routing",
+      "description": "Route status evaluation for WSN based on residual energy, distance to the next node, and link quality.",
       "variables": {
-        "energy": "Energy (E)",
-        "distance": "Distance (D)",
-        "reputation": "Reputation (R)",
-        "routeStatus": "Route Status (S)"
+        "residualEnergy": "Residual Energy (RE)",
+        "distance": "Distance to Next Node (Dist)",
+        "linkQuality": "Link Quality (LQ)",
+        "routeStatus": "Route Status (RS)"
       }
     },
     "aggregation": {

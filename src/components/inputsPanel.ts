@@ -1,5 +1,6 @@
 import { q, qa } from "../dom";
 import type { FuzzySystem } from "../fuzzy/types";
+import { valueDecimals, valueStep } from "../utils/format";
 import type { AppShellCtx, Unmount } from "./appShell";
 
 export function mountInputsPanel(
@@ -20,11 +21,11 @@ export function mountInputsPanel(
           </div>
           <div class="flex items-center gap-3 mt-1">
             <input type="range"
-              min="${v.range[0]}" max="${v.range[1]}" step="0.1"
+              min="${v.range[0]}" max="${v.range[1]}" step="${valueStep(v.range)}"
               data-slider
               class="flex-1 accent-slate-700" />
             <input type="number"
-              min="${v.range[0]}" max="${v.range[1]}" step="0.1"
+              min="${v.range[0]}" max="${v.range[1]}" step="${valueStep(v.range)}"
               data-number
               class="w-20 px-2 py-1 text-sm border border-slate-300 rounded-md tabular-nums" />
           </div>
@@ -44,10 +45,11 @@ export function mountInputsPanel(
     for (const row of rows) {
       const id = row.dataset.input!;
       const value = inputs[id] ?? 0;
+      const variable = system.inputs.find((x) => x.id === id)!;
       const slider = q<HTMLInputElement>(row, "[data-slider]");
       const num = q<HTMLInputElement>(row, "[data-number]");
       const display = q(row, "[data-display]");
-      const valStr = value.toFixed(1);
+      const valStr = value.toFixed(valueDecimals(variable.range));
       if (document.activeElement !== slider) slider.value = String(value);
       if (document.activeElement !== num) num.value = valStr;
       display.textContent = valStr;
