@@ -26,7 +26,8 @@
     "defuzzMethod": {
       "centroid": "Centroid",
       "bisector": "Bisector",
-      "weighted-average": "Weighted average"
+      "weighted-average": "Weighted average",
+      "weighted-sum": "Weighted sum"
     }
   },
   "terms": {
@@ -64,12 +65,12 @@
     },
     "aggregation": {
       "name": "Aggregation",
-      "description": "Data aggregation level based on energy, reputation, and load.",
+      "description": "Data aggregation priority for WSN based on energy expenditure, distance to the cluster head, and data transmission rate.",
       "variables": {
-        "energy": "Energy (E)",
-        "reputation": "Reputation (R)",
-        "load": "Load (T)",
-        "aggregation": "Aggregation (A)"
+        "expandedEnergy": "Expanded Energy (EE)",
+        "distanceToCH": "Distance to Cluster Head (Dist)",
+        "dataRate": "Data Rate (DR)",
+        "priority": "Aggregation Priority (AP)"
       }
     }
   },

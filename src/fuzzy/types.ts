@@ -4,7 +4,7 @@ export type MembershipShape =
   | { readonly kind: "gaussian"; readonly bias: number; readonly sigma: number }
   | { readonly kind: "singleton"; readonly at: number };
 
-export type DefuzzMethod = "centroid" | "bisector" | "weighted-average";
+export type DefuzzMethod = "centroid" | "bisector" | "weighted-average" | "weighted-sum";
 
 export interface FuzzyTerm {
   readonly id: string;

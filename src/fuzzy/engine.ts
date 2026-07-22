@@ -43,7 +43,7 @@ function hasSingletonOutput(system: FuzzySystem): boolean {
   return system.output.terms.every((t) => t.shape.kind === "singleton");
 }
 
-function weightedAverageSingletons(
+function weightedSingletons(
   system: FuzzySystem,
   inputs: Readonly<Record<string, number>>,
 ): { output: number; activations: Record<string, number> } {
@@ -79,7 +79,7 @@ function weightedAverageSingletons(
   }
 
   const output = denominator > 0
-    ? numerator / denominator
+    ? (system.defuzz === "weighted-sum" ? numerator : numerator / denominator)
     : (system.output.range[0] + system.output.range[1]) / 2;
   return { output, activations };
 }
@@ -113,8 +113,8 @@ export function createEngine(system: FuzzySystem): FuzzyEngine {
     let output: number;
     let outputTermActivations: Record<string, number> | undefined;
 
-    if (system.defuzz === "weighted-average" || singletonOutput) {
-      const r = weightedAverageSingletons(system, inputs);
+    if (system.defuzz === "weighted-average" || system.defuzz === "weighted-sum" || singletonOutput) {
+      const r = weightedSingletons(system, inputs);
       output = r.output;
       outputTermActivations = r.activations;
     } else {
