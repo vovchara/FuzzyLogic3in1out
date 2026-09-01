@@ -21,11 +21,13 @@ export function mountAggregatedPanel(
 
   container.innerHTML = `
     <h2 class="card-title" data-i18n="panels.aggregated"></h2>
-    <p class="text-xs text-slate-500 mt-1" data-i18n="panels.aggregatedHint"></p>
     <div class="relative mt-3">
       <canvas class="w-full h-[260px] rounded-md bg-white"></canvas>
     </div>
-    <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">${legend}</div>
+    <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+      <span class="text-slate-400" data-i18n="panels.aggregatedLevels"></span>
+      ${legend}
+    </div>
     <p class="mt-2 text-xs text-slate-500" data-empty hidden data-i18n="panels.aggregatedEmpty"></p>
   `;
 
