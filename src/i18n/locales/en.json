@@ -16,7 +16,15 @@
     "output": "Output",
     "memberships": "Memberships",
     "graphs": "Membership functions",
+    "aggregated": "Resulting fuzzy set",
+    "aggregatedLevels": "Activation levels:",
+    "aggregatedAxis": "Accumulated set \u03bc\u03a3",
+    "aggregatedEmpty": "No rule fires for the current inputs.",
     "rules": "Fuzzy inference rules"
+  },
+  "memberships": {
+    "activationLevels": "rule activation levels",
+    "backFuzzified": "back-fuzzified result"
   },
   "output": {
     "result": "Value",

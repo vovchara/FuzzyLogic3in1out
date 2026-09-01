@@ -8,6 +8,13 @@ export function mountMembershipsPanel(
   system: FuzzySystem,
 ): Unmount {
   const allVars: FuzzyVariable[] = [...system.inputs, system.output];
+  // Which reading the output column shows depends on the inference path, so
+  // both captions are rendered and one is revealed once an evaluation exists.
+  const outputCaption = `
+    <p class="text-[11px] text-slate-400 mb-2 leading-tight">
+      <span data-caption="activations" hidden data-i18n="memberships.activationLevels"></span>
+      <span data-caption="backFuzzified" hidden data-i18n="memberships.backFuzzified"></span>
+    </p>`;
   container.innerHTML = `
     <h2 class="card-title" data-i18n="panels.memberships"></h2>
     <div class="grid gap-4 mt-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -15,8 +22,9 @@ export function mountMembershipsPanel(
         .map(
           (v) => `
         <div data-var="${v.id}">
-          <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2"
+          <h3 class="text-xs font-semibold uppercase tracking-wide text-slate-500"
               data-i18n="${v.nameKey}"></h3>
+          ${v.id === system.output.id ? outputCaption : '<div class="mb-2"></div>'}
           <ul class="flex flex-col gap-1">
             ${v.terms
               .map(
@@ -42,6 +50,11 @@ export function mountMembershipsPanel(
   function render(): void {
     const { evaluation } = ctx.store.getState();
     if (!evaluation) return;
+
+    const activations = evaluation.outputTermActivations !== undefined;
+    for (const el of qa(container, "[data-caption]")) {
+      el.hidden = (el.dataset.caption === "activations") !== activations;
+    }
     for (const varEl of qa(container, "[data-var]")) {
       const varId = varEl.dataset.var!;
       const ms = evaluation.memberships[varId] ?? {};

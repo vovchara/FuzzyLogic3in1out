@@ -4,13 +4,24 @@ export function shapeToLatex(shape: MembershipShape): string {
   switch (shape.kind) {
     case "trapezoid": {
       const [a, b, c, d] = shape.points;
-      return String.raw`\mu(x) = \begin{cases}
-        0 & x \le ${a} \\[2pt]
-        \dfrac{x - ${a}}{${b} - ${a}} & ${a} < x < ${b} \\[2pt]
-        1 & ${b} \le x \le ${c} \\[2pt]
-        \dfrac{${d} - x}{${d} - ${c}} & ${c} < x < ${d} \\[2pt]
-        0 & x \ge ${d}
-      \end{cases}`;
+      // Shoulders collapse when a === b or c === d, and the plateau collapses
+      // to a point when b === c. Emitting those branches unconditionally would
+      // print empty intervals and zero denominators, so each is skipped.
+      const rows: string[] = [];
+      if (a < b) {
+        rows.push(String.raw`0 & x \le ${a}`);
+        rows.push(String.raw`\dfrac{x - ${a}}{${b} - ${a}} & ${a} < x < ${b}`);
+      } else {
+        rows.push(String.raw`0 & x < ${a}`);
+      }
+      rows.push(b < c ? String.raw`1 & ${b} \le x \le ${c}` : String.raw`1 & x = ${b}`);
+      if (c < d) {
+        rows.push(String.raw`\dfrac{${d} - x}{${d} - ${c}} & ${c} < x < ${d}`);
+        rows.push(String.raw`0 & x \ge ${d}`);
+      } else {
+        rows.push(String.raw`0 & x > ${d}`);
+      }
+      return casesToLatex(rows);
     }
     case "triangle": {
       const [a, b, c] = shape.points;
@@ -40,6 +51,67 @@ export function shapeToLatex(shape: MembershipShape): string {
         0 & \text{otherwise}
       \end{cases}`;
   }
+}
+
+/**
+ * Rewrites \dfrac{a}{b} as (a) / (b). Used for the PDF export only: KaTeX
+ * stacks fractions with zero-height positioned spans, and html2canvas puts the
+ * fraction rule at its flow position instead, striking through the numerator.
+ */
+export function inlineFractions(latex: string): string {
+  let out = "";
+  let i = 0;
+  while (i < latex.length) {
+    const opener = /^\\[dt]?frac\{/.exec(latex.slice(i));
+    if (!opener) {
+      out += latex[i];
+      i += 1;
+      continue;
+    }
+    const numStart = i + opener[0].length;
+    const numEnd = closingBrace(latex, numStart);
+    if (numEnd < 0 || latex[numEnd + 1] !== "{") {
+      out += latex[i];
+      i += 1;
+      continue;
+    }
+    const denStart = numEnd + 2;
+    const denEnd = closingBrace(latex, denStart);
+    if (denEnd < 0) {
+      out += latex[i];
+      i += 1;
+      continue;
+    }
+    const num = inlineFractions(latex.slice(numStart, numEnd));
+    const den = inlineFractions(latex.slice(denStart, denEnd));
+    out += `(${num}) / (${den})`;
+    i = denEnd + 1;
+  }
+  return out;
+}
+
+/** Index of the brace closing the group that starts at `start`. */
+function closingBrace(latex: string, start: number): number {
+  let depth = 1;
+  for (let i = start; i < latex.length; i++) {
+    if (latex[i] === "\\") {
+      i += 1;
+      continue;
+    }
+    if (latex[i] === "{") depth += 1;
+    else if (latex[i] === "}") {
+      depth -= 1;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+function casesToLatex(rows: readonly string[]): string {
+  return String.raw`\mu(x) = \begin{cases}
+        ${rows.join(String.raw` \\[2pt]
+        `)}
+      \end{cases}`;
 }
 
 export function termToLatex(term: FuzzyTerm): string {

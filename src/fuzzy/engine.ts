@@ -4,9 +4,12 @@ import {
   centroidStrategy,
   defuzz,
   variable,
+  type DefuzzStrategy,
   type LVar,
 } from "@thi.ng/fuzzy";
 import type {
+  AggregatedSet,
+  FuzzyCurve,
   FuzzyEvaluation,
   FuzzySystem,
   FuzzyVariable,
@@ -15,6 +18,7 @@ import type {
 
 const FALLBACK_OUTPUT = 25;
 const SINGLETON_EPS = 0.5;
+const NO_SETS = "no fuzzy sets given";
 
 // @thi.ng/fuzzy's own trapezoid()/triangle() mishandle a degenerate left
 // shoulder (a === b): they evaluate to 0 exactly at x = a instead of 1,
@@ -91,14 +95,55 @@ export function createEngine(system: FuzzySystem): FuzzyEngine {
       if (val === undefined || Number.isNaN(val)) return FALLBACK_OUTPUT;
       return val;
     } catch (err) {
-      if (err instanceof Error && err.message === "no fuzzy sets given") return FALLBACK_OUTPUT;
+      if (err instanceof Error && err.message === NO_SETS) return FALLBACK_OUTPUT;
       throw err;
     }
+  }
+
+  // Runs the implication + accumulation stages via @thi.ng/fuzzy and returns
+  // the resulting set instead of a defuzzified number: defuzz() hands the
+  // accumulated curve to its strategy, so a strategy that just keeps the
+  // reference yields the very curve the real strategy integrates. No parallel
+  // re-implementation of min/max, so the chart cannot drift from the result.
+  function captureSet(
+    rules: typeof thiRules,
+    inputs: Readonly<Record<string, number>>,
+  ): FuzzyCurve | null {
+    if (rules.length === 0) return null;
+    let captured: FuzzyCurve | null = null;
+    const capture: DefuzzStrategy = (fn) => {
+      captured = fn;
+      return 0;
+    };
+    try {
+      defuzz(inputVars, outputVars, rules, inputs, capture);
+    } catch (err) {
+      // Every rule silent for these inputs: union() gets no sets to combine.
+      if (err instanceof Error && err.message === NO_SETS) return null;
+      throw err;
+    }
+    return captured;
+  }
+
+  function aggregatedSet(inputs: Readonly<Record<string, number>>): AggregatedSet | undefined {
+    const envelope = captureSet(thiRules, inputs);
+    if (!envelope) return undefined;
+
+    const clipped: Record<string, FuzzyCurve> = {};
+    for (const term of system.output.terms) {
+      const subset = thiRules.filter(
+        (_, i) => system.rules[i].then[system.output.id] === term.id,
+      );
+      const curve = captureSet(subset, inputs);
+      if (curve) clipped[term.id] = curve;
+    }
+    return { envelope, clipped };
   }
 
   function evaluate(inputs: Readonly<Record<string, number>>): FuzzyEvaluation {
     let output: number;
     let outputTermActivations: Record<string, number> | undefined;
+    let aggregated: AggregatedSet | undefined;
 
     if (system.defuzz === "weighted-average" || system.defuzz === "weighted-sum" || singletonOutput) {
       const r = weightedSingletons(system, inputs);
@@ -106,6 +151,7 @@ export function createEngine(system: FuzzySystem): FuzzyEngine {
       outputTermActivations = r.activations;
     } else {
       output = runStrategyDefuzz(inputs);
+      aggregated = aggregatedSet(inputs);
     }
 
     const memberships: Record<string, Record<string, number>> = {};
@@ -118,8 +164,11 @@ export function createEngine(system: FuzzySystem): FuzzyEngine {
 
     const mostActiveTerm = getMostActiveTerm(memberships[system.output.id]);
 
-    return outputTermActivations
-      ? { output, memberships, mostActiveTerm, outputTermActivations }
+    if (outputTermActivations) {
+      return { output, memberships, mostActiveTerm, outputTermActivations };
+    }
+    return aggregated
+      ? { output, memberships, mostActiveTerm, aggregated }
       : { output, memberships, mostActiveTerm };
   }
 

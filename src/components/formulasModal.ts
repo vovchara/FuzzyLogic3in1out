@@ -9,9 +9,9 @@ import type { AppShellCtx, Unmount } from "./appShell";
 export function mountFormulasModal(container: HTMLElement, ctx: AppShellCtx): Unmount {
   container.innerHTML = `
     <div data-modal
-      class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm overflow-y-auto p-4 flex items-start justify-center">
-      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full my-8 relative">
-        <header class="sticky top-0 bg-white px-5 py-3 border-b flex items-center justify-between rounded-t-lg">
+      class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm p-4 sm:p-8 flex items-start justify-center">
+      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-full overflow-y-auto relative">
+        <header class="sticky top-0 z-10 bg-white px-5 py-3 border-b flex items-center justify-between rounded-t-lg">
           <h2 class="text-lg font-semibold" data-i18n="formulas.title"></h2>
           <div class="flex gap-2">
             <button type="button" data-download
@@ -117,13 +117,18 @@ function buildBody(system: FuzzySystem): string {
 
 function renderKatex(root: HTMLElement): void {
   for (const node of qa(root, "[data-math]")) {
-    const src = node.textContent ?? "";
-    node.innerHTML = "";
-    katex.render(src, node, { throwOnError: false, displayMode: false });
+    renderNode(node, false);
   }
   for (const node of qa(root, "[data-math-display]")) {
-    const src = node.textContent ?? "";
-    node.innerHTML = "";
-    katex.render(src, node, { throwOnError: false, displayMode: true });
+    renderNode(node, true);
   }
+}
+
+// The source is kept in data-latex: KaTeX replaces the markup it reads from, and
+// the PDF export needs to re-render the same formulas in a variant form.
+function renderNode(node: HTMLElement, displayMode: boolean): void {
+  const src = node.dataset.latex ?? node.textContent ?? "";
+  node.dataset.latex = src;
+  node.innerHTML = "";
+  katex.render(src, node, { throwOnError: false, displayMode });
 }
