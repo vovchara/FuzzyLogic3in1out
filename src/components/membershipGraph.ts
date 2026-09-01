@@ -1,13 +1,22 @@
 import { evaluateShape } from "../fuzzy/engine";
-import type { FuzzyTerm, FuzzyVariable } from "../fuzzy/types";
+import type { AggregatedSet, FuzzyCurve, FuzzyTerm, FuzzyVariable } from "../fuzzy/types";
 import { t } from "../i18n";
 import { valueDecimals } from "../utils/format";
+
+const CURVE_STEPS = 100;
+const ENVELOPE_STEPS = 400;
 
 interface GraphParams {
   variable: FuzzyVariable;
   canvas: HTMLCanvasElement;
   currentValue: number | null;
   highlightTermId: string | null;
+  /**
+   * When given, the resulting fuzzy set is drawn instead of the plain term
+   * curves: clipped terms filled, accumulated envelope on top.
+   */
+  aggregated?: AggregatedSet | null;
+  titleKey?: string;
 }
 
 export function drawMembershipGraph({
@@ -15,6 +24,8 @@ export function drawMembershipGraph({
   canvas,
   currentValue,
   highlightTermId,
+  aggregated = null,
+  titleKey,
 }: GraphParams): void {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -69,9 +80,13 @@ export function drawMembershipGraph({
   const toX = (value: number): number => paddingLeft + ((value - xMin) / xRange) * graphWidth;
   const toY = (m: number): number => paddingTop + graphHeight - m * graphHeight;
 
-  for (const term of variable.terms) {
-    const highlighted = term.id === highlightTermId;
-    drawTermCurve(ctx, term, toX, toY, xMin, xMax, highlighted);
+  if (aggregated) {
+    drawAggregatedCurves(ctx, variable, aggregated, toX, toY, xMin, xMax);
+  } else {
+    for (const term of variable.terms) {
+      const highlighted = term.id === highlightTermId;
+      drawTermCurve(ctx, term, toX, toY, xMin, xMax, highlighted);
+    }
   }
 
   if (currentValue !== null && !Number.isNaN(currentValue)) {
@@ -110,7 +125,63 @@ export function drawMembershipGraph({
   ctx.fillStyle = "#334155";
   ctx.font = "600 11px ui-sans-serif, system-ui";
   ctx.textAlign = "left";
-  ctx.fillText(t(variable.nameKey), paddingLeft, paddingTop - 10);
+  ctx.fillText(t(titleKey ?? variable.nameKey), paddingLeft, paddingTop - 10);
+}
+
+function drawAggregatedCurves(
+  ctx: CanvasRenderingContext2D,
+  variable: FuzzyVariable,
+  aggregated: AggregatedSet,
+  toX: (v: number) => number,
+  toY: (m: number) => number,
+  xMin: number,
+  xMax: number,
+): void {
+  const sample = (fn: FuzzyCurve, steps: number): { x: number; y: number }[] => {
+    const out: { x: number; y: number }[] = [];
+    for (let i = 0; i <= steps; i++) {
+      const v = xMin + ((xMax - xMin) * i) / steps;
+      out.push({ x: toX(v), y: toY(fn(v)) });
+    }
+    return out;
+  };
+
+  // Base term outlines, faint: they show how far each term was cut down.
+  for (const term of variable.terms) {
+    if (term.shape.kind === "singleton") continue;
+    const samples = sample((v) => evaluateShape(term.shape, v), CURVE_STEPS);
+    ctx.beginPath();
+    ctx.strokeStyle = hexWithAlpha(term.color, 0.35);
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    samples.forEach((s, i) => (i === 0 ? ctx.moveTo(s.x, s.y) : ctx.lineTo(s.x, s.y)));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Clipped terms, filled in their own colour.
+  for (const term of variable.terms) {
+    const curve = aggregated.clipped[term.id];
+    if (!curve) continue;
+    const samples = sample(curve, ENVELOPE_STEPS);
+    ctx.beginPath();
+    ctx.fillStyle = hexWithAlpha(term.color, 0.3);
+    ctx.moveTo(samples[0].x, toY(0));
+    for (const s of samples) ctx.lineTo(s.x, s.y);
+    ctx.lineTo(samples[samples.length - 1].x, toY(0));
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Accumulated envelope: the curve the defuzzification strategy integrates.
+  const envelope = sample(aggregated.envelope, ENVELOPE_STEPS);
+  ctx.beginPath();
+  ctx.strokeStyle = "#0f172a";
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  envelope.forEach((s, i) => (i === 0 ? ctx.moveTo(s.x, s.y) : ctx.lineTo(s.x, s.y)));
+  ctx.stroke();
 }
 
 function drawTermCurve(
@@ -145,7 +216,7 @@ function drawTermCurve(
     return;
   }
 
-  const steps = 100;
+  const steps = CURVE_STEPS;
   const samples: { x: number; y: number; m: number }[] = [];
   for (let i = 0; i <= steps; i++) {
     const v = xMin + ((xMax - xMin) * i) / steps;

@@ -3,6 +3,7 @@ import { systems as allSystems } from "../fuzzy/systems";
 import type { FuzzySystem } from "../fuzzy/types";
 import { t } from "../i18n";
 import type { AppShellCtx, Unmount } from "./appShell";
+import { mountAggregatedPanel, supportsAggregatedSet } from "./aggregatedPanel";
 import { mountGraphsPanel } from "./graphsPanel";
 import { mountInputsPanel } from "./inputsPanel";
 import { mountMembershipsPanel } from "./membershipsPanel";
@@ -22,6 +23,7 @@ export function mountFuzzyTab(container: HTMLElement, ctx: AppShellCtx): Unmount
           <span data-i18n="status.draftBanner"></span>
         </div>`
       : "";
+    const hasAggregated = supportsAggregatedSet(system);
     container.innerHTML = `
       ${draftBanner}
       <div class="grid gap-4 md:grid-cols-2">
@@ -29,6 +31,7 @@ export function mountFuzzyTab(container: HTMLElement, ctx: AppShellCtx): Unmount
         <section id="outputPanel" class="card"></section>
         <section id="membershipsPanel" class="card md:col-span-2"></section>
         <section id="graphsPanel" class="card md:col-span-2"></section>
+        ${hasAggregated ? '<section id="aggregatedPanel" class="card md:col-span-2"></section>' : ""}
         <section id="rulesPanel" class="card md:col-span-2"></section>
       </div>
     `;
@@ -36,6 +39,9 @@ export function mountFuzzyTab(container: HTMLElement, ctx: AppShellCtx): Unmount
     childUnmounts.push(mountOutputPanel(q(container, "#outputPanel"), ctx, system));
     childUnmounts.push(mountMembershipsPanel(q(container, "#membershipsPanel"), ctx, system));
     childUnmounts.push(mountGraphsPanel(q(container, "#graphsPanel"), ctx, system));
+    if (hasAggregated) {
+      childUnmounts.push(mountAggregatedPanel(q(container, "#aggregatedPanel"), ctx, system));
+    }
     childUnmounts.push(mountRulesPanel(q(container, "#rulesPanel"), ctx, system));
 
     applyI18n(container, t);

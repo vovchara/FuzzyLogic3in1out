@@ -42,9 +42,25 @@ export interface FuzzySystem {
   readonly draft?: boolean;
 }
 
+/** Membership curve over the output domain, sampled on demand. */
+export type FuzzyCurve = (x: number) => number;
+
+/**
+ * Resulting fuzzy set of one inference run, as produced by the implication and
+ * accumulation stages. Both curves come straight out of @thi.ng/fuzzy, so they
+ * are exactly what the defuzzification strategy integrates.
+ */
+export interface AggregatedSet {
+  /** Accumulated set over all rules: max of the clipped term curves. */
+  readonly envelope: FuzzyCurve;
+  /** Per-output-term clipped curve, keyed by term id. Silent terms are absent. */
+  readonly clipped: Readonly<Record<string, FuzzyCurve>>;
+}
+
 export interface FuzzyEvaluation {
   readonly output: number;
   readonly memberships: Readonly<Record<string, Readonly<Record<string, number>>>>;
   readonly mostActiveTerm: string;
   readonly outputTermActivations?: Readonly<Record<string, number>>;
+  readonly aggregated?: AggregatedSet;
 }

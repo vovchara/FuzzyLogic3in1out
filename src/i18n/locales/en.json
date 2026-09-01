@@ -16,6 +16,10 @@
     "output": "Output",
     "memberships": "Memberships",
     "graphs": "Membership functions",
+    "aggregated": "Resulting fuzzy set",
+    "aggregatedHint": "Output term membership functions clipped by their activation levels, then accumulated. The dashed line is the centroid, i.e. the final crisp value.",
+    "aggregatedAxis": "Accumulated set \u03bc\u03a3",
+    "aggregatedEmpty": "No rule fires for the current inputs.",
     "rules": "Fuzzy inference rules"
   },
   "output": {
