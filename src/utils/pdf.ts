@@ -1,6 +1,8 @@
+import katex from "katex";
 import { jsPDF } from "jspdf";
 import { t } from "../i18n";
 import type { FuzzyEvaluation, FuzzySystem, FuzzyVariable } from "../fuzzy/types";
+import { inlineFractions } from "./formulas";
 
 interface ExportArgs {
   system: FuzzySystem;
@@ -32,31 +34,105 @@ export async function exportResultPdf({ system, inputs, evaluation }: ExportArgs
 }
 
 export async function exportFormulasPdf(system: FuzzySystem, sourceEl: HTMLElement): Promise<void> {
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
-  await renderDomToPdf(doc, sourceEl);
-  doc.save(`${system.id}-formulas.pdf`);
+  const holder = document.createElement("div");
+  holder.style.cssText = [
+    "position:fixed",
+    "left:-10000px",
+    "top:0",
+    `width:${sourceEl.offsetWidth || 720}px`,
+    "background:#fff",
+  ].join(";");
+  holder.appendChild(withInlineFractions(sourceEl));
+  document.body.appendChild(holder);
+  try {
+    const doc = new jsPDF({ unit: "pt", format: "a4" });
+    await renderDomToPdf(doc, holder);
+    doc.save(`${system.id}-formulas.pdf`);
+  } finally {
+    holder.remove();
+  }
 }
+
+/** Copy of the rendered formulas with every fraction flattened to (a) / (b). */
+function withInlineFractions(sourceEl: HTMLElement): HTMLElement {
+  const clone = sourceEl.cloneNode(true) as HTMLElement;
+  for (const node of Array.from(clone.querySelectorAll<HTMLElement>("[data-latex]"))) {
+    const src = node.dataset.latex;
+    if (src === undefined) continue;
+    node.innerHTML = "";
+    katex.render(inlineFractions(src), node, {
+      throwOnError: false,
+      displayMode: node.hasAttribute("data-math-display"),
+    });
+  }
+  return clone;
+}
+
+const PAGE_MARGIN = 30;
+// How far above a page boundary to look for a blank band to cut through.
+const CUT_SEARCH_RATIO = 0.25;
+// Channel value above which a pixel counts as page background.
+const BLANK_THRESHOLD = 250;
 
 async function renderDomToPdf(doc: jsPDF, source: HTMLElement): Promise<void> {
   const html2canvas = (await import("html2canvas")).default;
   const canvas = await html2canvas(source, { backgroundColor: "#ffffff", scale: 2 });
-  const img = canvas.toDataURL("image/png");
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 30;
-  const imgW = pageWidth - margin * 2;
-  const imgH = imgW * (canvas.height / canvas.width);
-  const printable = pageHeight - margin * 2;
-  if (imgH <= printable) {
-    doc.addImage(img, "PNG", margin, margin, imgW, imgH);
-    return;
+  const imgW = doc.internal.pageSize.getWidth() - PAGE_MARGIN * 2;
+  const printable = doc.internal.pageSize.getHeight() - PAGE_MARGIN * 2;
+  const pxPerPt = canvas.width / imgW;
+  const maxSlice = Math.floor(printable * pxPerPt);
+
+  let top = 0;
+  let firstPage = true;
+  while (top < canvas.height) {
+    const height = sliceHeight(canvas, top, maxSlice);
+    if (!firstPage) doc.addPage();
+    firstPage = false;
+    doc.addImage(sliceToPng(canvas, top, height), "PNG", PAGE_MARGIN, PAGE_MARGIN, imgW, height / pxPerPt);
+    top += height;
   }
-  let offsetY = 0;
-  while (offsetY < imgH) {
-    doc.addImage(img, "PNG", margin, margin - offsetY, imgW, imgH);
-    offsetY += printable;
-    if (offsetY < imgH) doc.addPage();
+}
+
+/**
+ * Height of the next page slice. Cutting at a fixed page pitch slices whatever
+ * sits on the boundary in half, so the boundary is pulled back to the nearest
+ * blank scanline when one is close enough.
+ */
+function sliceHeight(canvas: HTMLCanvasElement, top: number, maxSlice: number): number {
+  const remaining = canvas.height - top;
+  if (remaining <= maxSlice) return remaining;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return maxSlice;
+  const searchHeight = Math.floor(maxSlice * CUT_SEARCH_RATIO);
+  const band = ctx.getImageData(0, top + maxSlice - searchHeight, canvas.width, searchHeight);
+  for (let y = searchHeight - 1; y >= 0; y--) {
+    if (isBlankRow(band, canvas.width, y)) return maxSlice - searchHeight + y + 1;
   }
+  return maxSlice;
+}
+
+function isBlankRow(band: ImageData, width: number, y: number): boolean {
+  const px = band.data;
+  const start = y * width * 4;
+  for (let i = start; i < start + width * 4; i += 4) {
+    if (px[i] < BLANK_THRESHOLD || px[i + 1] < BLANK_THRESHOLD || px[i + 2] < BLANK_THRESHOLD) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function sliceToPng(canvas: HTMLCanvasElement, top: number, height: number): string {
+  const slice = document.createElement("canvas");
+  slice.width = canvas.width;
+  slice.height = height;
+  const ctx = slice.getContext("2d");
+  if (!ctx) return canvas.toDataURL("image/png");
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, slice.width, slice.height);
+  ctx.drawImage(canvas, 0, top, canvas.width, height, 0, 0, canvas.width, height);
+  return slice.toDataURL("image/png");
 }
 
 function buildResultHtml(
