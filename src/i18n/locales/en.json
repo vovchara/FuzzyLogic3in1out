@@ -1,7 +1,6 @@
 {
   "app": {
-    "title": "Fuzzy Logic Controllers",
-    "subtitle": "3 inputs → 1 output"
+    "title": "Fuzzy Logic Controllers"
   },
   "actions": {
     "calculate": "Calculate",
@@ -14,13 +13,17 @@
   "panels": {
     "inputs": "Inputs",
     "output": "Output",
-    "memberships": "Memberships",
-    "graphs": "Membership functions",
-    "aggregated": "Resulting fuzzy set",
+    "process": "Inference process",
+    "processShow": "show steps",
+    "processHide": "hide steps",
     "aggregatedLevels": "Activation levels:",
-    "aggregatedAxis": "Accumulated set \u03bc\u03a3",
-    "aggregatedEmpty": "No rule fires for the current inputs.",
-    "rules": "Fuzzy inference rules"
+    "aggregatedAxis": "Accumulated set μΣ",
+    "aggregatedEmpty": "No rule fires for the current inputs."
+  },
+  "steps": {
+    "fuzzification": "Fuzzification: membership functions",
+    "rules": "Rule evaluation: α = min(conditions)",
+    "aggregation": "Accumulation & defuzzification: resulting set"
   },
   "memberships": {
     "activationLevels": "rule activation levels",
@@ -95,7 +98,9 @@
     "if": "IF",
     "and": "AND",
     "then": "THEN",
-    "is": "="
+    "is": "=",
+    "alpha": "α",
+    "alphaHint": "Rule firing strength (minimum of the input memberships)"
   },
   "languages": {
     "ua": "Українська",

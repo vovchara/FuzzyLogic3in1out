@@ -1,8 +1,6 @@
-import { getMostActiveTerm, membershipsFor } from "../fuzzy/engine";
+import { getMostActiveTerm } from "../fuzzy/engine";
 import { q, qa } from "../dom";
-import { t } from "../i18n";
 import type { FuzzySystem, FuzzyVariable } from "../fuzzy/types";
-import { valueDecimals } from "../utils/format";
 import type { AppShellCtx, Unmount } from "./appShell";
 import { drawMembershipGraph } from "./membershipGraph";
 
@@ -12,16 +10,37 @@ export function mountGraphsPanel(
   system: FuzzySystem,
 ): Unmount {
   const allVars: FuzzyVariable[] = [...system.inputs, system.output];
+  // Which reading the output list shows depends on the inference path, so both
+  // captions are rendered and one is revealed once an evaluation exists.
+  const outputCaption = `
+    <p class="mt-2 text-[11px] text-slate-400 leading-tight">
+      <span data-caption="activations" hidden data-i18n="memberships.activationLevels"></span>
+      <span data-caption="backFuzzified" hidden data-i18n="memberships.backFuzzified"></span>
+    </p>`;
   container.innerHTML = `
-    <h2 class="card-title" data-i18n="panels.graphs"></h2>
-    <div class="grid gap-4 mt-3 sm:grid-cols-2">
+    <div class="grid gap-4 sm:grid-cols-2">
       ${allVars
         .map(
           (v) => `
-        <div data-graph="${v.id}" class="relative">
-          <canvas class="w-full h-[220px] rounded-md bg-white cursor-crosshair"></canvas>
-          <div data-tooltip
-            class="pointer-events-none fixed z-20 hidden rounded-md bg-slate-900/95 text-white text-xs p-2 shadow-lg"></div>
+        <div data-graph="${v.id}">
+          <canvas class="w-full h-[220px] rounded-md bg-white"></canvas>
+          ${v.id === system.output.id ? outputCaption : ""}
+          <ul class="mt-2 flex flex-col gap-1">
+            ${v.terms
+              .map(
+                (term) => `
+              <li data-term="${term.id}"
+                  class="flex items-center justify-between gap-2 px-2 py-1 rounded transition
+                         data-[active=true]:ring-1 data-[active=true]:ring-slate-300 data-[active=true]:bg-slate-50">
+                <span class="flex items-center gap-2 text-sm">
+                  <span class="w-2.5 h-2.5 rounded-full" style="background:${term.color}"></span>
+                  <span data-i18n="${term.nameKey}"></span>
+                </span>
+                <span class="font-mono tabular-nums text-xs text-slate-700" data-value>0.000</span>
+              </li>`,
+              )
+              .join("")}
+          </ul>
         </div>`,
         )
         .join("")}
@@ -41,6 +60,14 @@ export function mountGraphsPanel(
 
   function renderAll(): void {
     const { evaluation, inputs } = ctx.store.getState();
+
+    if (evaluation) {
+      const activations = evaluation.outputTermActivations !== undefined;
+      for (const el of qa(container, "[data-caption]")) {
+        el.hidden = (el.dataset.caption === "activations") !== activations;
+      }
+    }
+
     for (const wrap of wrappers) {
       const varId = wrap.dataset.graph!;
       const variable = allVars.find((v) => v.id === varId)!;
@@ -50,65 +77,42 @@ export function mountGraphsPanel(
         ? (evaluation?.output ?? null)
         : (inputs[varId] ?? variable.defaultValue);
       const ms = evaluation?.memberships[varId];
-      const highlightTermId = ms ? getMostActiveTerm(ms) : null;
+      const strongest = ms ? strongestTerm(ms) : null;
+
       drawMembershipGraph({
         variable,
         canvas,
         currentValue: currentValue ?? null,
-        highlightTermId: highlightTermId && highlightTermId !== "N/A" ? highlightTermId : null,
+        highlightTermId: strongest,
       });
-    }
-  }
 
-  for (const wrap of wrappers) {
-    const canvas = q<HTMLCanvasElement>(wrap, "canvas");
-    const tip = q<HTMLElement>(wrap, "[data-tooltip]");
-    const variable = allVars.find((v) => v.id === wrap.dataset.graph!)!;
-
-    canvas.addEventListener("mousemove", (ev) => {
-      const rect = canvas.getBoundingClientRect();
-      const mx = ev.clientX - rect.left;
-      const paddingLeft = 32;
-      const paddingRight = 16;
-      const innerW = rect.width - paddingLeft - paddingRight;
-      if (mx < paddingLeft || mx > rect.width - paddingRight) {
-        tip.style.display = "none";
-        return;
+      if (!ms) continue;
+      for (const termEl of qa(wrap, "[data-term]")) {
+        const termId = termEl.dataset.term!;
+        termEl.querySelector<HTMLElement>("[data-value]")!.textContent = (ms[termId] ?? 0).toFixed(3);
+        termEl.dataset.active = String(termId === strongest);
       }
-      const [xMin, xMax] = variable.range;
-      const x = xMin + ((mx - paddingLeft) / innerW) * (xMax - xMin);
-      const ms = membershipsFor(variable, x);
-      const lines = variable.terms
-        .slice()
-        .sort((a, b) => (ms[b.id] ?? 0) - (ms[a.id] ?? 0))
-        .map(
-          (term) => `
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full" style="background:${term.color}"></span>
-            <span class="font-medium">${t(term.nameKey)}</span>
-            <span class="font-mono tabular-nums">${(ms[term.id] ?? 0).toFixed(3)}</span>
-          </div>`,
-        )
-        .join("");
-      tip.innerHTML = `
-        <div class="font-semibold mb-1">${t(variable.nameKey)} = ${x.toFixed(valueDecimals(variable.range))}</div>
-        ${lines}
-      `;
-      tip.style.display = "block";
-      tip.style.left = `${ev.clientX + 14}px`;
-      tip.style.top = `${ev.clientY + 14}px`;
-    });
-    canvas.addEventListener("mouseleave", () => (tip.style.display = "none"));
+    }
   }
 
   renderAll();
   const unsub = ctx.store.subscribe(scheduleRender);
-  const onResize = () => scheduleRender();
-  window.addEventListener("resize", onResize);
+  // Watching the canvases rather than the window also catches the moment a
+  // collapsed step is opened: until then the canvas has no size to draw on.
+  const observer = new ResizeObserver(scheduleRender);
+  for (const wrap of wrappers) observer.observe(q(wrap, "canvas"));
 
   return () => {
     if (rafId !== null) cancelAnimationFrame(rafId);
-    window.removeEventListener("resize", onResize);
+    observer.disconnect();
     unsub();
   };
+}
+
+// A term only counts as the active one when it actually carries weight, so a
+// variable outside every term stays unhighlighted instead of picking the first.
+function strongestTerm(memberships: Readonly<Record<string, number>>): string | null {
+  const id = getMostActiveTerm(memberships);
+  if (id === "N/A") return null;
+  return (memberships[id] ?? 0) > 0.1 ? id : null;
 }

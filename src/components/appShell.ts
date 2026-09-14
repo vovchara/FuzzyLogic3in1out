@@ -23,7 +23,6 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount
         <div class="max-w-6xl mx-auto flex items-center justify-between gap-3 flex-wrap">
           <div>
             <h1 class="text-lg md:text-xl font-semibold text-slate-900" data-i18n="app.title"></h1>
-            <p class="text-xs text-slate-500" data-i18n="app.subtitle"></p>
           </div>
           <div class="flex gap-2 items-center flex-wrap">
             <button type="button" id="showFormulasBtn"

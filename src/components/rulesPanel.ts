@@ -12,44 +12,39 @@ export function mountRulesPanel(
   varById.set(system.output.id, system.output);
 
   container.innerHTML = `
-    <details class="group">
-      <summary class="cursor-pointer select-none list-none flex items-center justify-between gap-2">
-        <h2 class="card-title" data-i18n="panels.rules"></h2>
-        <svg class="w-4 h-4 text-slate-500 transition-transform group-open:rotate-180"
-             viewBox="0 0 20 20" fill="currentColor">
-          <path d="M5 7l5 6 5-6H5z"/>
-        </svg>
-      </summary>
-      <div class="mt-3 overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="text-xs text-slate-500 uppercase">
-            <tr>
-              <th class="text-left px-2 py-1 font-medium">#</th>
-              <th class="text-left px-2 py-1 font-medium" data-i18n="rule.if"></th>
-              <th class="text-left px-2 py-1 font-medium" data-i18n="rule.then"></th>
-            </tr>
-          </thead>
-          <tbody>
-            ${system.rules
-              .map((r, idx) => {
-                const conditions = Object.entries(r.if)
-                  .map(([vid, tid]) => renderRulePart(varById, vid, tid))
-                  .join(`<span class="text-slate-400 mx-1" data-i18n="rule.and"></span>`);
-                const conclusions = Object.entries(r.then)
-                  .map(([vid, tid]) => renderRulePart(varById, vid, tid))
-                  .join(" ");
-                return `
-              <tr data-rule="${r.id}" class="border-t border-slate-100 data-[active=true]:bg-amber-50">
-                <td class="px-2 py-1.5 text-slate-400 font-mono tabular-nums">${idx + 1}</td>
-                <td class="px-2 py-1.5">${conditions}</td>
-                <td class="px-2 py-1.5">${conclusions}</td>
-              </tr>`;
-              })
-              .join("")}
-          </tbody>
-        </table>
-      </div>
-    </details>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-xs text-slate-500 uppercase">
+          <tr>
+            <th class="text-left px-2 py-1 font-medium">#</th>
+            <th class="text-left px-2 py-1 font-medium" data-i18n="rule.if"></th>
+            <th class="text-left px-2 py-1 font-medium" data-i18n="rule.then"></th>
+            <th class="text-right px-2 py-1 font-medium" data-i18n="rule.alpha"
+                data-i18n-title="rule.alphaHint"></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${system.rules
+            .map((r, idx) => {
+              const conditions = Object.entries(r.if)
+                .map(([vid, tid]) => renderRulePart(varById, vid, tid))
+                .join(`<span class="text-slate-400 mx-1" data-i18n="rule.and"></span>`);
+              const conclusions = Object.entries(r.then)
+                .map(([vid, tid]) => renderRulePart(varById, vid, tid))
+                .join(" ");
+              return `
+            <tr data-rule="${r.id}" class="border-t border-slate-100 transition-colors">
+              <td class="px-2 py-1.5 text-slate-400 font-mono tabular-nums">${idx + 1}</td>
+              <td class="px-2 py-1.5">${conditions}</td>
+              <td class="px-2 py-1.5">${conclusions}</td>
+              <td class="px-2 py-1.5 text-right font-mono tabular-nums text-xs text-slate-300"
+                  data-alpha>0.000</td>
+            </tr>`;
+            })
+            .join("")}
+        </tbody>
+      </table>
+    </div>
   `;
 
   function render(): void {
@@ -60,12 +55,28 @@ export function mountRulesPanel(
       const rule = system.rules.find((r) => r.id === ruleId);
       if (!rule) continue;
       const truth = computeRuleTruth(rule, evaluation.memberships);
-      tr.dataset.active = String(truth > 0.5);
+      tr.style.backgroundColor = tintFor(truth);
+      const alphaEl = tr.querySelector<HTMLElement>("[data-alpha]")!;
+      alphaEl.textContent = truth.toFixed(3);
+      // A silent rule's zero would only add noise to a 27-row table.
+      alphaEl.classList.toggle("text-slate-300", truth <= 0.001);
+      alphaEl.classList.toggle("text-slate-700", truth > 0.001);
     }
   }
 
   render();
   return ctx.store.subscribe(render);
+}
+
+// Every rule that fires at all is tinted, with the tint tracking its firing
+// strength: the table then reads as a heat map of the inference instead of
+// hiding everything below a threshold.
+const TINT_RGB = "251, 191, 36"; // amber-400
+const TINT_MAX_ALPHA = 0.55;
+
+function tintFor(truth: number): string {
+  if (truth <= 0.001) return "";
+  return `rgba(${TINT_RGB}, ${(truth * TINT_MAX_ALPHA).toFixed(3)})`;
 }
 
 function renderRulePart(

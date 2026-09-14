@@ -20,8 +20,7 @@ export function mountAggregatedPanel(
     .join("");
 
   container.innerHTML = `
-    <h2 class="card-title" data-i18n="panels.aggregated"></h2>
-    <div class="relative mt-3">
+    <div class="relative">
       <canvas class="w-full h-[260px] rounded-md bg-white"></canvas>
     </div>
     <div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
@@ -79,12 +78,13 @@ export function mountAggregatedPanel(
 
   render();
   const unsub = ctx.store.subscribe(scheduleRender);
-  const onResize = () => scheduleRender();
-  window.addEventListener("resize", onResize);
+  // See graphsPanel: the canvas only gets a size once its step is expanded.
+  const observer = new ResizeObserver(scheduleRender);
+  observer.observe(canvas);
 
   return () => {
     if (rafId !== null) cancelAnimationFrame(rafId);
-    window.removeEventListener("resize", onResize);
+    observer.disconnect();
     unsub();
   };
 }
