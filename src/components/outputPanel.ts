@@ -16,10 +16,12 @@ export function mountOutputPanel(
         <span class="text-3xl font-semibold tabular-nums" data-result>–</span>
         <span class="text-sm text-slate-400">/ ${system.output.range[1]}</span>
       </div>
-      <div class="flex items-baseline gap-3">
+      <div class="flex items-baseline gap-3" data-term-row>
         <span class="text-sm text-slate-500" data-i18n="output.mostActive"></span>
         <span class="font-medium" data-active-term>–</span>
       </div>
+      <p class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5"
+         data-no-rules hidden data-i18n="output.noRuleFired"></p>
       <div class="flex items-baseline gap-2 text-xs text-slate-500">
         <span data-i18n="output.defuzz"></span>
         <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-medium"
@@ -32,7 +34,9 @@ export function mountOutputPanel(
   `;
 
   const resultEl = q(container, "[data-result]");
+  const termRow = q(container, "[data-term-row]");
   const termEl = q(container, "[data-active-term]");
+  const noRulesEl = q(container, "[data-no-rules]");
   const exportBtn = q<HTMLButtonElement>(container, "[data-export]");
 
   function render(): void {
@@ -43,11 +47,21 @@ export function mountOutputPanel(
       exportBtn.disabled = true;
       return;
     }
+    exportBtn.disabled = false;
+
+    // Outside the rule base there is no result to report: `output` only holds
+    // a fallback, and the "most active" term would be the first zero one.
+    termRow.hidden = !evaluation.fired;
+    noRulesEl.hidden = evaluation.fired;
+    if (!evaluation.fired) {
+      resultEl.textContent = "–";
+      return;
+    }
+
     resultEl.textContent = evaluation.output.toFixed(2);
     const term = system.output.terms.find((t0) => t0.id === evaluation.mostActiveTerm);
     termEl.textContent = term ? t(term.nameKey) : evaluation.mostActiveTerm;
     termEl.style.color = term?.color ?? "";
-    exportBtn.disabled = false;
   }
 
   exportBtn.addEventListener("click", async () => {

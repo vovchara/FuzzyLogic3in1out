@@ -59,6 +59,12 @@ export interface AggregatedSet {
 
 export interface FuzzyEvaluation {
   readonly output: number;
+  /**
+   * Whether any rule fired at all. With a sparse rule base large parts of the
+   * input space match no rule; `output` then holds a fallback the inference
+   * never computed, so callers must present the result as undefined instead.
+   */
+  readonly fired: boolean;
   readonly memberships: Readonly<Record<string, Readonly<Record<string, number>>>>;
   readonly mostActiveTerm: string;
   readonly outputTermActivations?: Readonly<Record<string, number>>;

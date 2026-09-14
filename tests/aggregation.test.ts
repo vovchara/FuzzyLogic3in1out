@@ -16,6 +16,17 @@ describe("Aggregation controller (weighted-sum defuzz, singleton output)", () =>
     expect(calc(3, 19, 7)).toBeCloseTo(68.3, 1);
   });
 
+  test("Reports no result where the sparse rule base has a hole", () => {
+    // Small EE + Large Dist + Large DR is one of the 21 term combinations the
+    // 6 expert rules never cover, so `output` is a fallback, not an answer.
+    const ev = engine.evaluate({ EE: 6, Dist: 200, DR: 111 });
+    expect(ev.fired).toBe(false);
+  });
+
+  test("Reports a result wherever a rule does cover the inputs", () => {
+    expect(engine.evaluate({ EE: 3, Dist: 19, DR: 7 }).fired).toBe(true);
+  });
+
   test("Rule 1: Small EE + Small Dist + Small DR -> VeryLarge (AP = 100)", () => {
     expect(calc(0, 0, 0)).toBeCloseTo(100, 5);
   });

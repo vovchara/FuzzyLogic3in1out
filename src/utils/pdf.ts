@@ -141,7 +141,9 @@ function buildResultHtml(
   evaluation: FuzzyEvaluation,
 ): string {
   const now = new Date().toISOString().replace("T", " ").slice(0, 19);
-  const outputTerm = system.output.terms.find((x) => x.id === evaluation.mostActiveTerm);
+  const outputTerm = evaluation.fired
+    ? system.output.terms.find((x) => x.id === evaluation.mostActiveTerm)
+    : undefined;
   const outputColor = outputTerm?.color ?? "#0f172a";
   const allVars: FuzzyVariable[] = [...system.inputs, system.output];
 
@@ -196,12 +198,14 @@ function buildResultHtml(
     <h2 style="${H2}">${esc(t("pdf.result"))}</h2>
     <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:4px">
       <span style="color:#64748b;font-size:12px">${esc(t(system.output.nameKey))}</span>
-      <span style="font-size:28px;font-weight:700;color:${outputColor};font-family:ui-monospace,monospace">${evaluation.output.toFixed(2)}</span>
+      <span style="font-size:28px;font-weight:700;color:${outputColor};font-family:ui-monospace,monospace">${evaluation.fired ? evaluation.output.toFixed(2) : "–"}</span>
       <span style="color:#94a3b8;font-size:12px">/ ${system.output.range[1]}</span>
     </div>
     <div style="margin-bottom:28px">
-      <span style="color:#64748b;font-size:12px">${esc(t("output.mostActive"))}:</span>
-      <span style="color:${outputColor};font-weight:600;margin-left:6px">${outputTerm ? esc(t(outputTerm.nameKey)) : "—"}</span>
+      ${evaluation.fired
+        ? `<span style="color:#64748b;font-size:12px">${esc(t("output.mostActive"))}:</span>
+           <span style="color:${outputColor};font-weight:600;margin-left:6px">${outputTerm ? esc(t(outputTerm.nameKey)) : "—"}</span>`
+        : `<span style="color:#92400e;font-size:12px">${esc(t("output.noRuleFired"))}</span>`}
     </div>
 
     <h2 style="${H2}">${esc(t("pdf.memberships"))}</h2>

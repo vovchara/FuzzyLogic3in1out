@@ -32,6 +32,7 @@
   "output": {
     "result": "Value",
     "mostActive": "Most active term",
+    "noRuleFired": "No rule fires for these inputs — the result is undefined",
     "empty": "–",
     "defuzz": "Defuzzification method",
     "defuzzMethod": {

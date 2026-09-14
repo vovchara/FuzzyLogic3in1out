@@ -21,6 +21,15 @@
   input[type="range"] {
     cursor: pointer;
   }
+  /*
+   * Preflight hides [hidden] through a zero-specificity :where() rule that any
+   * display utility (.flex, .grid, .inline) outranks by source order, so
+   * `el.hidden = true` silently does nothing on such elements. !important
+   * restores the attribute as the last word on visibility.
+   */
+  [hidden] {
+    display: none !important;
+  }
 }
 
 .katex-display {

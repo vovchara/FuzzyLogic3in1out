@@ -37,7 +37,7 @@ function hasSingletonOutput(system: FuzzySystem): boolean {
 function weightedSingletons(
   system: FuzzySystem,
   inputs: Readonly<Record<string, number>>,
-): { output: number; activations: Record<string, number> } {
+): { output: number; activations: Record<string, number>; fired: boolean } {
   const inputEvals: Record<string, Record<string, number>> = {};
   for (const v of system.inputs) {
     const evals: Record<string, number> = {};
@@ -72,7 +72,7 @@ function weightedSingletons(
   const output = denominator > 0
     ? (system.defuzz === "weighted-sum" ? numerator : numerator / denominator)
     : (system.output.range[0] + system.output.range[1]) / 2;
-  return { output, activations };
+  return { output, activations, fired: denominator > 0 };
 }
 
 export interface FuzzyEngine {
@@ -142,6 +142,7 @@ export function createEngine(system: FuzzySystem): FuzzyEngine {
 
   function evaluate(inputs: Readonly<Record<string, number>>): FuzzyEvaluation {
     let output: number;
+    let fired: boolean;
     let outputTermActivations: Record<string, number> | undefined;
     let aggregated: AggregatedSet | undefined;
 
@@ -149,9 +150,12 @@ export function createEngine(system: FuzzySystem): FuzzyEngine {
       const r = weightedSingletons(system, inputs);
       output = r.output;
       outputTermActivations = r.activations;
+      fired = r.fired;
     } else {
       output = runStrategyDefuzz(inputs);
       aggregated = aggregatedSet(inputs);
+      // No accumulated set means union() got nothing: every rule stayed silent.
+      fired = aggregated !== undefined;
     }
 
     const memberships: Record<string, Record<string, number>> = {};
@@ -165,11 +169,11 @@ export function createEngine(system: FuzzySystem): FuzzyEngine {
     const mostActiveTerm = getMostActiveTerm(memberships[system.output.id]);
 
     if (outputTermActivations) {
-      return { output, memberships, mostActiveTerm, outputTermActivations };
+      return { output, fired, memberships, mostActiveTerm, outputTermActivations };
     }
     return aggregated
-      ? { output, memberships, mostActiveTerm, aggregated }
-      : { output, memberships, mostActiveTerm };
+      ? { output, fired, memberships, mostActiveTerm, aggregated }
+      : { output, fired, memberships, mostActiveTerm };
   }
 
   return { system, evaluate };

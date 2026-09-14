@@ -74,7 +74,7 @@ export function mountGraphsPanel(
       const canvas = q<HTMLCanvasElement>(wrap, "canvas");
       const isOutput = varId === system.output.id;
       const currentValue = isOutput
-        ? (evaluation?.output ?? null)
+        ? (evaluation?.fired ? evaluation.output : null)
         : (inputs[varId] ?? variable.defaultValue);
       const ms = evaluation?.memberships[varId];
       const strongest = ms ? strongestTerm(ms) : null;
