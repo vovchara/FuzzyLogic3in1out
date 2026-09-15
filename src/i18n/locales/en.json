@@ -1,6 +1,6 @@
 {
   "app": {
-    "title": "Fuzzy Logic Controllers"
+    "name": "Fuzzy controllers for WSN"
   },
   "actions": {
     "calculate": "Calculate",
@@ -60,7 +60,7 @@
   "systems": {
     "commCtrl": {
       "name": "Clustering",
-      "description": "Cluster head selection probability for a sensor node based on residual energy, packet delivery ratio, and transmission delay.",
+      "description": "Suitability of a sensor node for the cluster-head role",
       "variables": {
         "residualEnergy": "Residual Energy (En)",
         "packetDeliveryRatio": "Packet Delivery Ratio (PDR)",
@@ -70,7 +70,7 @@
     },
     "routing": {
       "name": "Routing",
-      "description": "Route status evaluation for WSN based on residual energy, distance to the next node, and link quality.",
+      "description": "Route status evaluation for WSN",
       "variables": {
         "residualEnergy": "Residual Energy (RE)",
         "distance": "Distance to Next Node (Dist)",
@@ -80,7 +80,7 @@
     },
     "aggregation": {
       "name": "Aggregation",
-      "description": "Data aggregation priority for WSN based on energy expenditure, distance to the cluster head, and data transmission rate.",
+      "description": "Data aggregation priority for WSN",
       "variables": {
         "expandedEnergy": "Expanded Energy (EE)",
         "distanceToCH": "Distance to Cluster Head (Dist)",

@@ -22,7 +22,8 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount
       <header class="px-4 py-3 border-b bg-white shadow-sm sticky top-0 z-10">
         <div class="max-w-6xl mx-auto flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <h1 class="text-lg md:text-xl font-semibold text-slate-900" data-i18n="app.title"></h1>
+            <h1 class="text-base md:text-lg font-semibold text-slate-900 leading-snug"
+                data-system-title></h1>
           </div>
           <div class="flex gap-2 items-center flex-wrap">
             <button type="button" id="showFormulasBtn"
@@ -43,6 +44,26 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount
     ctx.store.setState({ formulasOpen: true });
   });
 
+  // The app's own name says nothing useful on screen, so the heading carries
+  // the active controller's purpose. The browser tab keeps the app name: it
+  // identifies the window and should not shift under the user. Writing the key
+  // back into data-i18n leaves the heading to applyI18n on a language switch;
+  // document.title has no such hook and is refreshed explicitly.
+  const headingEl = q(container, "[data-system-title]");
+  let titledSystemId = "";
+  function syncTitle(force = false): void {
+    const { activeSystemId } = ctx.store.getState();
+    if (activeSystemId === titledSystemId && !force) return;
+    const system = ctx.systems.find((s) => s.id === activeSystemId);
+    if (!system) return;
+    titledSystemId = activeSystemId;
+    headingEl.dataset.i18n = system.descriptionKey;
+    headingEl.textContent = t(system.descriptionKey);
+    document.title = t("app.name");
+  }
+  syncTitle();
+  const titleUnsub = ctx.store.subscribe(() => syncTitle());
+
   const unmounts: Unmount[] = [];
   unmounts.push(mountLanguageSwitcher(q(container, "#langSwitcher")));
   unmounts.push(mountTabBar(q(container, "#tabBar"), ctx));
@@ -50,10 +71,14 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount
   unmounts.push(mountFormulasModal(q(container, "#modalRoot"), ctx));
 
   applyI18n(container, t);
-  const langUnsub = onLanguageChange(() => applyI18n(container, t));
+  const langUnsub = onLanguageChange(() => {
+    applyI18n(container, t);
+    syncTitle(true);
+  });
 
   return () => {
     langUnsub();
+    titleUnsub();
     for (const u of unmounts) u();
   };
 }
