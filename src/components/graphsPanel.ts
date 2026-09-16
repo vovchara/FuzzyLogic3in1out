@@ -15,7 +15,7 @@ export function mountGraphsPanel(
   const outputCaption = `
     <p class="mt-2 text-[11px] text-slate-400 leading-tight">
       <span data-caption="activations" hidden data-i18n="memberships.activationLevels"></span>
-      <span data-caption="backFuzzified" hidden data-i18n="memberships.backFuzzified"></span>
+      <span data-caption="interpretation" hidden data-i18n="memberships.linguisticInterpretation"></span>
     </p>`;
   container.innerHTML = `
     <div class="grid gap-4 sm:grid-cols-2">

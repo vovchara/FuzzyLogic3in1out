@@ -203,7 +203,7 @@ function buildResultHtml(
     </div>
     <div style="margin-bottom:28px">
       ${evaluation.fired
-        ? `<span style="color:#64748b;font-size:12px">${esc(t("output.mostActive"))}:</span>
+        ? `<span style="color:#64748b;font-size:12px">${esc(t(evaluation.outputTermActivations ? "output.mostActive" : "output.resultTerm"))}:</span>
            <span style="color:${outputColor};font-weight:600;margin-left:6px">${outputTerm ? esc(t(outputTerm.nameKey)) : "—"}</span>`
         : `<span style="color:#92400e;font-size:12px">${esc(t("output.noRuleFired"))}</span>`}
     </div>

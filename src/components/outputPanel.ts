@@ -1,4 +1,4 @@
-import { q } from "../dom";
+import { q, qa } from "../dom";
 import { t } from "../i18n";
 import type { FuzzySystem } from "../fuzzy/types";
 import type { AppShellCtx, Unmount } from "./appShell";
@@ -17,7 +17,10 @@ export function mountOutputPanel(
         <span class="text-sm text-slate-400">/ ${system.output.range[1]}</span>
       </div>
       <div class="flex items-baseline gap-3" data-term-row>
-        <span class="text-sm text-slate-500" data-i18n="output.mostActive"></span>
+        <span class="text-sm text-slate-500">
+          <span data-label="activations" hidden data-i18n="output.mostActive"></span>
+          <span data-label="interpretation" hidden data-i18n="output.resultTerm"></span>
+        </span>
         <span class="font-medium" data-active-term>–</span>
       </div>
       <p class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5"
@@ -56,6 +59,14 @@ export function mountOutputPanel(
     if (!evaluation.fired) {
       resultEl.textContent = "–";
       return;
+    }
+
+    // With singleton outputs the term row really is the strongest rule activation;
+    // on the centroid path it is the defuzzified value read back through the output
+    // MFs, so "most active" would be misleading and the wording differs.
+    const activations = evaluation.outputTermActivations !== undefined;
+    for (const el of qa(container, "[data-label]")) {
+      el.hidden = (el.dataset.label === "activations") !== activations;
     }
 
     resultEl.textContent = evaluation.output.toFixed(2);

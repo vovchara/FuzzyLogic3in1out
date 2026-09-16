@@ -27,11 +27,12 @@
   },
   "memberships": {
     "activationLevels": "rule activation levels",
-    "backFuzzified": "back-fuzzified result"
+    "linguisticInterpretation": "linguistic interpretation of the result"
   },
   "output": {
     "result": "Value",
     "mostActive": "Most active term",
+    "resultTerm": "Result term",
     "noRuleFired": "No rule fires for these inputs — the result is undefined",
     "empty": "–",
     "defuzz": "Defuzzification method",
