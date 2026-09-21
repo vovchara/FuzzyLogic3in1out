@@ -3,6 +3,7 @@ import { jsPDF } from "jspdf";
 import { t } from "../i18n";
 import type { FuzzyEvaluation, FuzzySystem, FuzzyVariable } from "../fuzzy/types";
 import { inlineFractions } from "./formulas";
+import { formatDegree, formatOutput, formatValue } from "./format";
 
 interface ExportArgs {
   system: FuzzySystem;
@@ -152,7 +153,7 @@ function buildResultHtml(
       (v) => `
     <tr>
       <td style="padding:4px 16px 4px 0;color:#475569">${esc(t(v.nameKey))}</td>
-      <td style="padding:4px 0;font-family:ui-monospace,monospace;font-weight:600;text-align:right">${(inputs[v.id] ?? 0).toFixed(2)}</td>
+      <td style="padding:4px 0;font-family:ui-monospace,monospace;font-weight:600;text-align:right">${formatValue(inputs[v.id] ?? 0, v.range)}</td>
     </tr>`,
     )
     .join("");
@@ -170,7 +171,7 @@ function buildResultHtml(
               <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${term.color};margin-right:6px;vertical-align:middle"></span>
               <span style="color:#334155">${esc(t(term.nameKey))}</span>
             </td>
-            <td style="padding:2px 0;font-family:ui-monospace,monospace;font-size:12px;text-align:right;color:#0f172a;font-weight:${active ? "600" : "400"}">${value.toFixed(3)}</td>
+            <td style="padding:2px 0;font-family:ui-monospace,monospace;font-size:12px;text-align:right;color:#0f172a;font-weight:${active ? "600" : "400"}">${formatDegree(value)}</td>
           </tr>`;
         })
         .join("");
@@ -198,7 +199,7 @@ function buildResultHtml(
     <h2 style="${H2}">${esc(t("pdf.result"))}</h2>
     <div style="display:flex;align-items:baseline;gap:16px;margin-bottom:4px">
       <span style="color:#64748b;font-size:12px">${esc(t(system.output.nameKey))}</span>
-      <span style="font-size:28px;font-weight:700;color:${outputColor};font-family:ui-monospace,monospace">${evaluation.fired ? evaluation.output.toFixed(2) : "–"}</span>
+      <span style="font-size:28px;font-weight:700;color:${outputColor};font-family:ui-monospace,monospace">${evaluation.fired ? formatOutput(evaluation.output) : "–"}</span>
       <span style="color:#94a3b8;font-size:12px">/ ${system.output.range[1]}</span>
     </div>
     <div style="margin-bottom:28px">

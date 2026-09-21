@@ -13,12 +13,12 @@ const ns = "systems.aggregation";
 const v = (id: string) => `${ns}.variables.${id}`;
 
 const rules: readonly FuzzyRule[] = [
-  { id: "r01", if: { EE: "Small",  Dist: "Small",  DR: "Small" }, then: { AP: "VeryLarge" } },
-  { id: "r02", if: { EE: "Small",  Dist: "Medium", DR: "Medium" }, then: { AP: "Large" } },
-  { id: "r03", if: { EE: "Medium", Dist: "Medium", DR: "Small" }, then: { AP: "Medium" } },
-  { id: "r04", if: { EE: "Medium", Dist: "Large",  DR: "Medium" }, then: { AP: "Small" } },
-  { id: "r05", if: { EE: "Large",  Dist: "Small",  DR: "Large" }, then: { AP: "VerySmall" } },
-  { id: "r06", if: { EE: "Large",  Dist: "Large",  DR: "Large" }, then: { AP: "None" } },
+  { id: "r01", if: { EE: "Small",  Dis: "Small",  DR: "Small" }, then: { AP: "VeryLarge" } },
+  { id: "r02", if: { EE: "Small",  Dis: "Medium", DR: "Medium" }, then: { AP: "Large" } },
+  { id: "r03", if: { EE: "Medium", Dis: "Medium", DR: "Small" }, then: { AP: "Medium" } },
+  { id: "r04", if: { EE: "Medium", Dis: "Large",  DR: "Medium" }, then: { AP: "Small" } },
+  { id: "r05", if: { EE: "Large",  Dis: "Small",  DR: "Large" }, then: { AP: "VerySmall" } },
+  { id: "r06", if: { EE: "Large",  Dis: "Large",  DR: "Large" }, then: { AP: "None" } },
 ];
 
 export const aggregationSystem: FuzzySystem = {
@@ -40,7 +40,7 @@ export const aggregationSystem: FuzzySystem = {
       ],
     },
     {
-      id: "Dist",
+      id: "Dis",
       nameKey: v("distanceToCH"),
       range: [0, 214],
       defaultValue: 107,
