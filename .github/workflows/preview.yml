@@ -1,0 +1,94 @@
+name: Preview a branch on Pages
+
+# Publishes two versions of the app at once: master at the site root and the
+# chosen branch under /preview/, so the two URLs read as "before" and "after".
+#
+# Manual only. A later push to master runs deploy.yml, which replaces the whole
+# site and removes /preview/ — that is the intended way to clean up.
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to publish under /preview/"
+        required: true
+        default: feat/workbench-redesign
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Shares the group with deploy.yml: GitHub Pages serves a single site, so two
+# deployments must never overlap.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          path: base
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: pnpm install --no-frozen-lockfile
+        working-directory: base
+      - run: pnpm build
+        working-directory: base
+
+      - name: Check out the branch to preview
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          path: preview
+
+      - run: pnpm install --no-frozen-lockfile
+        working-directory: preview
+      # The branch is the code being shown, so it has to pass its own tests.
+      - run: pnpm test
+        working-directory: preview
+      - run: pnpm build
+        working-directory: preview
+
+      # `base: "./"` in vite.config.ts is what lets the same build serve from a
+      # subdirectory without being rebuilt for that path.
+      - name: Assemble the site
+        run: |
+          mkdir -p site/preview
+          cp -R base/dist/. site/
+          cp -R preview/dist/. site/preview/
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Link both versions
+        run: |
+          {
+            echo "| | URL |"
+            echo "| --- | --- |"
+            echo "| master (before) | ${{ steps.deployment.outputs.page_url }} |"
+            echo "| ${{ inputs.branch }} (after) | ${{ steps.deployment.outputs.page_url }}preview/ |"
+          } >> "$GITHUB_STEP_SUMMARY"
