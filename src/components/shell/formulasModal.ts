@@ -1,24 +1,24 @@
 import katex from "katex";
-import { applyI18n, q, qa } from "../dom";
-import { systems as allSystems } from "../fuzzy/systems";
-import type { FuzzySystem } from "../fuzzy/types";
-import { t } from "../i18n";
-import { ruleToLatex, termToLatex, variableDomainLatex } from "../utils/formulas";
-import type { AppShellCtx, Unmount } from "./appShell";
+import { applyI18n, q, qa } from "../../dom";
+import { systems as allSystems } from "../../fuzzy/systems";
+import type { FuzzySystem } from "../../fuzzy/types";
+import { t } from "../../i18n";
+import { ruleToLatex, termToLatex, variableDomainLatex } from "../../utils/formulas";
+import type { AppShellCtx, Unmount } from "../context";
 
 export function mountFormulasModal(container: HTMLElement, ctx: AppShellCtx): Unmount {
   container.innerHTML = `
     <div data-modal
-      class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm p-4 sm:p-8 flex items-start justify-center">
+      class="fixed inset-0 z-50 hidden bg-graphite-900/50 backdrop-blur-sm p-4 sm:p-8 flex items-start justify-center">
       <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full max-h-full overflow-y-auto relative">
         <header class="sticky top-0 z-10 bg-white px-5 py-3 border-b flex items-center justify-between rounded-t-lg">
           <h2 class="text-lg font-semibold" data-i18n="formulas.title"></h2>
           <div class="flex gap-2">
             <button type="button" data-download
-              class="px-3 py-1.5 text-sm rounded-md bg-slate-900 text-white hover:bg-slate-800"
+              class="btn-primary"
               data-i18n="actions.downloadPdf"></button>
             <button type="button" data-close
-              class="px-3 py-1.5 text-sm rounded-md border border-slate-300 hover:bg-slate-50"
+              class="btn"
               data-i18n="actions.close"></button>
           </div>
         </header>
@@ -38,7 +38,7 @@ export function mountFormulasModal(container: HTMLElement, ctx: AppShellCtx): Un
   });
   q(container, "[data-download]").addEventListener("click", async () => {
     const system = currentSystem();
-    const { exportFormulasPdf } = await import("../utils/pdf");
+    const { exportFormulasPdf } = await import("../../utils/pdf");
     await exportFormulasPdf(system, body);
   });
 
@@ -78,8 +78,8 @@ function buildBody(system: FuzzySystem): string {
     .map(
       (v) => `
       <section class="mb-6">
-        <h3 class="font-semibold text-slate-800 mb-1">${t(v.nameKey)}</h3>
-        <div class="text-xs text-slate-500 mb-3">
+        <h3 class="font-semibold text-graphite-800 mb-1">${t(v.nameKey)}</h3>
+        <div class="text-xs text-graphite-500 mb-3">
           <span data-i18n="formulas.domain"></span>: <span data-math>${variableDomainLatex(v)}</span>
         </div>
         <div class="grid gap-3">
@@ -100,8 +100,8 @@ function buildBody(system: FuzzySystem): string {
   const rules = system.rules
     .map(
       (r, i) => `
-      <div class="flex gap-3 items-start py-1.5 border-b border-slate-100 last:border-0">
-        <span class="text-xs font-mono text-slate-400 tabular-nums mt-1 w-6">${i + 1}</span>
+      <div class="flex gap-3 items-start py-1.5 border-b border-graphite-100 last:border-0">
+        <span class="text-xs font-mono text-graphite-400 tabular-nums mt-1 w-6">${i + 1}</span>
         <div data-math class="flex-1">${ruleToLatex(r, system, { t })}</div>
       </div>`,
     )

@@ -3,38 +3,39 @@
     "name": "Fuzzy controllers for WSN"
   },
   "actions": {
-    "calculate": "Calculate",
     "exportPdf": "Export PDF",
     "showFormulas": "Show formulas",
     "downloadPdf": "Download PDF",
-    "close": "Close",
-    "reset": "Reset"
+    "close": "Close"
   },
   "panels": {
     "inputs": "Inputs",
     "output": "Output",
-    "process": "Inference process",
-    "processShow": "show steps",
-    "processHide": "hide steps",
     "aggregatedLevels": "Activation levels:",
-    "aggregatedAxis": "Accumulated set μΣ",
-    "aggregatedEmpty": "No rule fires for the current inputs."
+    "aggregatedAxis": "Accumulated membership function μΣ",
+    "railToggle": "inputs",
+    "defuzzAxis": "Output membership functions"
   },
   "steps": {
-    "fuzzification": "Fuzzification: membership functions",
-    "rules": "Rule evaluation: α = min(conditions)",
-    "aggregation": "Accumulation & defuzzification: resulting set"
+    "fuzzification": "Fuzzification",
+    "rules": "Rule evaluation",
+    "aggregation": "Accumulation",
+    "fuzzificationHint": "Each input number turns into degrees of membership in that variable's terms.",
+    "rulesHint": "A rule's firing strength is its weakest condition: α = min(conditions).",
+    "aggregationHint": "Rule conclusions are clipped to their firing strength and merged into a single fuzzy set.",
+    "defuzzification": "Defuzzification",
+    "defuzzificationHint": "One number is read off the resulting set — the abscissa of its centre of gravity. That is the controller's answer.",
+    "response": "System response",
+    "responseHint": "How the output behaves across the whole input domain, not just at the current point."
   },
   "memberships": {
     "activationLevels": "rule activation levels",
     "linguisticInterpretation": "linguistic interpretation of the result"
   },
   "output": {
-    "result": "Value",
     "mostActive": "Most active term",
     "resultTerm": "Result term",
     "noRuleFired": "No rule fires for these inputs — the result is undefined",
-    "empty": "–",
     "defuzz": "Defuzzification method",
     "defuzzMethod": {
       "centroid": "Centroid",
@@ -84,7 +85,7 @@
       "description": "Data aggregation priority for WSN",
       "variables": {
         "expandedEnergy": "Expanded Energy (EE)",
-        "distanceToCH": "Distance to Cluster Head (Dist)",
+        "distanceToCH": "Distance to Cluster Head (Dis)",
         "dataRate": "Data Rate (DR)",
         "priority": "Aggregation Priority (AP)"
       }
@@ -102,25 +103,44 @@
     "then": "THEN",
     "is": "=",
     "alpha": "α",
-    "alphaHint": "Rule firing strength (minimum of the input memberships)"
+    "alphaHint": "Rule firing strength: the minimum of the input membership degrees",
+    "legendTint": "Row tint tracks the firing strength α.",
+    "legendDominant": "The max badge marks the strongest rule for its output term: that one sets the clipping level.",
+    "dominant": "max",
+    "dominantHint": "Strongest of the rules concluding this output term"
   },
-  "languages": {
-    "ua": "Українська",
-    "en": "English"
-  },
+  "languages": {},
   "status": {
     "draft": "Draft",
     "draftBanner": "This controller is in draft mode — formulas and rules pending verification."
   },
-  "errors": {
-    "outOfRange": "Values must be in range {{min}}–{{max}}",
-    "invalidNumber": "Invalid numeric value"
-  },
+  "errors": {},
   "pdf": {
     "generatedAt": "Generated at",
-    "system": "System",
     "inputs": "Inputs",
     "result": "Result",
     "memberships": "Memberships"
+  },
+  "flow": {
+    "label": "Inference stages",
+    "short": {
+      "fuzzification": "Fuzzification",
+      "rules": "Rules",
+      "aggregation": "Accumulation",
+      "defuzzification": "Defuzzification",
+      "response": "Response"
+    },
+    "status": {
+      "activeTerms": "active terms: {{n}}",
+      "firedRules": "{{n}} of {{total}}",
+      "wholeDomain": "whole domain"
+    }
+  },
+  "response": {
+    "transferTitle": "Transfer curves",
+    "transferHint": "Each input in turn sweeps its whole range while the others hold. Grey bands are where no rule fires.",
+    "surfaceTitle": "Control surfaces",
+    "fixedAt": "at",
+    "surfaceHint": "Every pair of inputs; colour is the output value on a shared scale. The two lines on a map are the same cuts the transfer curves plot above."
   }
 }

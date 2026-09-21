@@ -1,17 +1,17 @@
-import { qa } from "../dom";
-import { getLang, LANGUAGES, onLanguageChange, setLang, type Language } from "../i18n";
-import type { Unmount } from "./appShell";
+import { qa } from "../../dom";
+import { getLang, LANGUAGES, onLanguageChange, setLang, type Language } from "../../i18n";
+import type { Unmount } from "../context";
 
 export function mountLanguageSwitcher(container: HTMLElement): Unmount {
   container.innerHTML = `
-    <div class="inline-flex rounded-md border border-slate-300 overflow-hidden text-sm" role="group" aria-label="Language">
+    <div class="inline-flex rounded-md border border-graphite-300 overflow-hidden text-sm" role="group" aria-label="Language">
       ${LANGUAGES.map(
         (l) => `
         <button type="button"
           data-lang="${l}"
-          class="px-2.5 py-1.5 transition border-l first:border-l-0 border-slate-300
-                 data-[active=true]:bg-slate-900 data-[active=true]:text-white
-                 hover:bg-slate-100 data-[active=true]:hover:bg-slate-900">
+          class="px-2 py-1.5 transition border-l first:border-l-0 border-graphite-300 text-graphite-600
+                 data-[active=true]:bg-brand-700 data-[active=true]:text-white
+                 hover:bg-graphite-100 data-[active=true]:hover:bg-brand-700">
           ${l.toUpperCase()}
         </button>`,
       ).join("")}
