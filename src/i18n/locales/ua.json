@@ -13,7 +13,6 @@
     "output": "Результат",
     "aggregatedLevels": "Рівні активації:",
     "aggregatedAxis": "Акумульована функція належності μΣ",
-    "railToggle": "входи",
     "defuzzAxis": "Функції належності виходу"
   },
   "steps": {

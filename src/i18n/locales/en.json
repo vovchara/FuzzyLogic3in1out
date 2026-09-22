@@ -13,7 +13,6 @@
     "output": "Output",
     "aggregatedLevels": "Activation levels:",
     "aggregatedAxis": "Accumulated membership function μΣ",
-    "railToggle": "inputs",
     "defuzzAxis": "Output membership functions"
   },
   "steps": {

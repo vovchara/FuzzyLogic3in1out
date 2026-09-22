@@ -37,7 +37,7 @@ export function mountFlowStrip(
 
   container.innerHTML = `
     <nav data-i18n-aria-label="flow.label"
-         class="lg:sticky lg:top-[var(--header-h)] lg:z-20 lg:py-2 lg:-my-1 lg:bg-graphite-50/95 lg:backdrop-blur">
+         class="lg:sticky lg:top-[var(--header-h)] lg:z-20 lg:py-2 lg:-my-1 lg:bg-graphite-50">
       <ol class="flex items-stretch gap-1.5 max-lg:overflow-x-auto pb-1">
         ${nodes.join(ARROW)}
       </ol>
