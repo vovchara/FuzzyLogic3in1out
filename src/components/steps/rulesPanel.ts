@@ -1,5 +1,5 @@
 import { q, qa } from "../../dom";
-import { ruleStrength } from "../../fuzzy/engine";
+import { FIRE_EPS, ruleStrength } from "../../fuzzy/engine";
 import { formatDegree } from "../../utils/format";
 import type { FuzzySystem, FuzzyVariable } from "../../fuzzy/types";
 import type { AppShellCtx, Unmount } from "../context";
@@ -57,8 +57,8 @@ export function mountRulesPanel(
       const alphaEl = q(tr, "[data-alpha]");
       alphaEl.textContent = formatDegree(truth);
       // A silent rule's zero would only add noise to a 27-row table.
-      alphaEl.classList.toggle("text-graphite-300", truth <= 0.001);
-      alphaEl.classList.toggle("text-graphite-800", truth > 0.001);
+      alphaEl.classList.toggle("text-graphite-300", truth <= FIRE_EPS);
+      alphaEl.classList.toggle("text-graphite-800", truth > FIRE_EPS);
 
       const isDominant = dominant.has(ruleId);
       q(tr, "[data-dominant]").hidden = !isDominant;
@@ -88,7 +88,7 @@ function dominantRuleIds(
     const termId = rule.then[system.output.id];
     if (termId === undefined) continue;
     const truth = truths.get(rule.id) ?? 0;
-    if (truth <= 0.001) continue;
+    if (truth <= FIRE_EPS) continue;
     const current = best.get(termId);
     if (!current || truth > current.truth) best.set(termId, { id: rule.id, truth });
   }
@@ -108,7 +108,7 @@ const TINT_RGB = "251, 191, 36"; // amber-400
 const TINT_MAX_ALPHA = 0.55;
 
 function tintFor(truth: number): string {
-  if (truth <= 0.001) return "";
+  if (truth <= FIRE_EPS) return "";
   return `rgba(${TINT_RGB}, ${(truth * TINT_MAX_ALPHA).toFixed(3)})`;
 }
 

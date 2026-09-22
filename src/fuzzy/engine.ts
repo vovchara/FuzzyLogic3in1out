@@ -44,6 +44,14 @@ function inputMemberships(
 }
 
 /**
+ * Below this firing strength a rule counts as silent. A gaussian term never
+ * reaches exactly zero, so a rule far outside its antecedents still carries a
+ * residual strength; treating it as fired would report every rule of a purely
+ * gaussian system as active for any input.
+ */
+export const FIRE_EPS = 0.001;
+
+/**
  * Firing strength of one rule: the min-conjunction of its antecedent
  * memberships. Exported because the rule table and the flow strip report the
  * same number the inference uses, and a second copy of it could drift.

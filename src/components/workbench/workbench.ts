@@ -1,5 +1,5 @@
 import { applyI18n, q, qa } from "../../dom";
-import { curvePeak, ruleStrength } from "../../fuzzy/engine";
+import { curvePeak, FIRE_EPS, ruleStrength } from "../../fuzzy/engine";
 import { systems as allSystems } from "../../fuzzy/systems";
 import type { FuzzySystem } from "../../fuzzy/types";
 import { t } from "../../i18n";
@@ -45,7 +45,7 @@ function stepsFor(system: FuzzySystem): InferenceStep[] {
       status: (s, state) => {
         const ev = state.evaluation;
         if (!ev) return "";
-        const fired = s.rules.filter((r) => ruleStrength(r, ev.memberships) > 0).length;
+        const fired = s.rules.filter((r) => ruleStrength(r, ev.memberships) > FIRE_EPS).length;
         return t("flow.status.firedRules", { n: fired, total: s.rules.length });
       },
     },
