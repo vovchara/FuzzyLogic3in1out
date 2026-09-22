@@ -77,10 +77,6 @@ properties are worth keeping, and both are one `grep` away from being checked:
 system's state out from under the reader. A new
 inference step is one entry in `stepsFor()` in `workbench.ts` plus its mount function.
 
-### Reference material
-
-The `references/` folder holds PDFs and diagrams of the formulas used. The PhD manuscript itself is *not* committed — `.gitignore` excludes files matching `*_thesis.*`, `*_phd.*`, and the `/private/` folder.
-
 ---
 
 ## Українська
@@ -118,7 +114,3 @@ npm run preview      # локальний перегляд dist/
 npm run test         # прогін тестів Vitest
 npm run typecheck    # перевірка типів TypeScript
 ```
-
-### Довідкові матеріали
-
-Папка `references/` містить PDF-файли з формулами та діаграмами функцій належності. Текст дисертації **не** комітиться — `.gitignore` виключає файли з масками `*_thesis.*`, `*_phd.*` та теку `/private/`.
