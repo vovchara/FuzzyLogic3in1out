@@ -24,9 +24,7 @@
     "rulesHint": "A rule's firing strength is its weakest condition: α = min(conditions).",
     "aggregationHint": "Rule conclusions are clipped to their firing strength and merged into a single fuzzy set.",
     "defuzzification": "Defuzzification",
-    "defuzzificationHint": "One number is read off the resulting set — the abscissa of its centre of gravity. That is the controller's answer.",
-    "response": "System response",
-    "responseHint": "How the output behaves across the whole input domain, not just at the current point."
+    "defuzzificationHint": "One number is read off the resulting set — the abscissa of its centre of gravity. That is the controller's answer."
   },
   "memberships": {
     "activationLevels": "rule activation levels",
@@ -57,7 +55,11 @@
     "none": "None",
     "smallM": "Small",
     "mediumM": "Medium",
-    "largeM": "Large"
+    "largeM": "Large",
+    "veryLowM": "Very low",
+    "lowM": "Low",
+    "highM": "High",
+    "veryHighM": "Very high"
   },
   "systems": {
     "commCtrl": {
@@ -127,20 +129,11 @@
       "fuzzification": "Fuzzification",
       "rules": "Rules",
       "aggregation": "Accumulation",
-      "defuzzification": "Defuzzification",
-      "response": "Response"
+      "defuzzification": "Defuzzification"
     },
     "status": {
       "activeTerms": "active terms: {{n}}",
-      "firedRules": "{{n}} of {{total}}",
-      "wholeDomain": "whole domain"
+      "firedRules": "{{n}} of {{total}}"
     }
-  },
-  "response": {
-    "transferTitle": "Transfer curves",
-    "transferHint": "Each input in turn sweeps its whole range while the others hold. Grey bands are where no rule fires.",
-    "surfaceTitle": "Control surfaces",
-    "fixedAt": "at",
-    "surfaceHint": "Every pair of inputs; colour is the output value on a shared scale. The two lines on a map are the same cuts the transfer curves plot above."
   }
 }
