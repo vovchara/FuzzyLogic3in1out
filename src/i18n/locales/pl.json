@@ -24,9 +24,7 @@
     "aggregation": "Akumulacja",
     "aggregationHint": "Wnioski reguł są obcinane do siły ich zadziałania i łączone w jeden zbiór rozmyty.",
     "defuzzification": "Wyostrzanie",
-    "defuzzificationHint": "Z wynikowego zbioru odczytywana jest jedna liczba — odcięta jego środka ciężkości. To odpowiedź sterownika.",
-    "response": "Odpowiedź układu",
-    "responseHint": "Jak zachowuje się wyjście w całej dziedzinie wejść, a nie tylko w bieżącym punkcie."
+    "defuzzificationHint": "Z wynikowego zbioru odczytywana jest jedna liczba — odcięta jego środka ciężkości. To odpowiedź sterownika."
   },
   "memberships": {
     "activationLevels": "poziomy aktywacji reguł",
@@ -57,7 +55,11 @@
     "none": "Brak",
     "smallM": "Mały",
     "mediumM": "Średni",
-    "largeM": "Duży"
+    "largeM": "Duży",
+    "veryLowM": "Bardzo niski",
+    "lowM": "Niski",
+    "highM": "Wysoki",
+    "veryHighM": "Bardzo wysoki"
   },
   "systems": {
     "commCtrl": {
@@ -127,20 +129,11 @@
       "fuzzification": "Rozmywanie",
       "rules": "Reguły",
       "aggregation": "Akumulacja",
-      "defuzzification": "Wyostrzanie",
-      "response": "Odpowiedź"
+      "defuzzification": "Wyostrzanie"
     },
     "status": {
       "activeTerms": "aktywnych termów: {{n}}",
-      "firedRules": "{{n}} z {{total}}",
-      "wholeDomain": "cała dziedzina"
+      "firedRules": "{{n}} z {{total}}"
     }
-  },
-  "response": {
-    "transferTitle": "Charakterystyki przejściowe",
-    "transferHint": "Każde wejście po kolei przebiega cały swój zakres, pozostałe zachowują bieżące wartości. Szare pasma to obszary bez aktywnych reguł.",
-    "surfaceTitle": "Powierzchnie sterowania",
-    "fixedAt": "przy",
-    "surfaceHint": "Wszystkie pary wejść; kolor odpowiada wartości wyjścia we wspólnej skali. Dwie linie na mapie to te same przekroje, które przedstawiają charakterystyki powyżej."
   }
 }

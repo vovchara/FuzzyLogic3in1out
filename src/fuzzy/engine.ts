@@ -110,12 +110,6 @@ function weightedSingletons(
 export interface FuzzyEngine {
   readonly system: FuzzySystem;
   evaluate(inputs: Readonly<Record<string, number>>): FuzzyEvaluation;
-  /**
-   * The crisp result alone, or null where no rule fires. The sweep panels run
-   * one inference per pixel — thousands per redraw — and need none of the
-   * per-term memberships or the accumulated set that evaluate() also builds.
-   */
-  outputOnly(inputs: Readonly<Record<string, number>>): number | null;
 }
 
 export function createEngine(system: FuzzySystem): FuzzyEngine {
@@ -214,23 +208,7 @@ export function createEngine(system: FuzzySystem): FuzzyEngine {
       : { output, fired, memberships, mostActiveTerm };
   }
 
-  function anyRuleFires(inputs: Readonly<Record<string, number>>): boolean {
-    const inputEvals = inputMemberships(system, inputs);
-    return system.rules.some((r) => ruleStrength(r, inputEvals) > 0);
-  }
-
-  function outputOnly(inputs: Readonly<Record<string, number>>): number | null {
-    if (system.defuzz === "weighted-average" || system.defuzz === "weighted-sum" || singletonOutput) {
-      const r = weightedSingletons(system, inputs);
-      return r.fired ? r.output : null;
-    }
-    // Cheaper than letting defuzz() throw NO_SETS and reading it off the
-    // error, and it keeps the "no rule fired" verdict identical to evaluate().
-    if (!anyRuleFires(inputs)) return null;
-    return runStrategyDefuzz(inputs);
-  }
-
-  return { system, evaluate, outputOnly };
+  return { system, evaluate };
 }
 
 export function membershipsFor(v: FuzzyVariable, x: number): Record<string, number> {

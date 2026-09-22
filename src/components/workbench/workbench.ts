@@ -11,15 +11,13 @@ import { mountControlRail } from "./controlRail";
 import { mountDefuzzPanel } from "../steps/defuzzPanel";
 import { mountFlowStrip } from "./flowStrip";
 import { mountGraphsPanel } from "../steps/graphsPanel";
-import { mountResponsePanel } from "../steps/responsePanel";
 import { mountRulesPanel } from "../steps/rulesPanel";
 
 const OPEN_STATE_KEY = "fuzzy.openSections";
 
 // The steps sit in the order the inference actually runs: fuzzify the inputs,
 // evaluate the rules, accumulate the clipped conclusions, then read a crisp
-// number back off the resulting set. The response map closes the tour by
-// stepping back from the single point to the whole input space.
+// number back off the resulting set.
 function stepsFor(system: FuzzySystem): InferenceStep[] {
   const steps: InferenceStep[] = [
     {
@@ -68,28 +66,14 @@ function stepsFor(system: FuzzySystem): InferenceStep[] {
     });
   }
 
-  steps.push(
-    {
-      id: "defuzzification",
-      titleKey: "steps.defuzzification",
-      shortKey: "flow.short.defuzzification",
-      hintKey: "steps.defuzzificationHint",
-      mount: mountDefuzzPanel,
-      status: (s) => t(`output.defuzzMethod.${s.defuzz}`),
-    },
-    {
-      id: "response",
-      titleKey: "steps.response",
-      shortKey: "flow.short.response",
-      hintKey: "steps.responseHint",
-      mount: mountResponsePanel,
-      status: () => t("flow.status.wholeDomain"),
-      // This step leaves the current inference behind and looks at the whole
-      // input space, which is a bigger jump than the four before it. It opens
-      // when the reader asks for it rather than greeting them unannounced.
-      defaultOpen: false,
-    },
-  );
+  steps.push({
+    id: "defuzzification",
+    titleKey: "steps.defuzzification",
+    shortKey: "flow.short.defuzzification",
+    hintKey: "steps.defuzzificationHint",
+    mount: mountDefuzzPanel,
+    status: (s) => t(`output.defuzzMethod.${s.defuzz}`),
+  });
 
   return steps;
 }

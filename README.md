@@ -16,13 +16,12 @@ Three WSN controllers — clustering, aggregation and routing — each take thre
 
 The page is laid out as a workbench: a control rail pinned to the left holds the inputs and the current result, and the inference itself runs down the main column. A flow strip across the top of that column doubles as a diagram of the pipeline and as navigation through it, each node carrying a live reading of its stage.
 
-The five stages, in the order the inference performs them:
+The four stages, in the order the inference performs them:
 
 1. **Fuzzification** — membership functions per input, with the current value marked and every term's degree projected onto the μ axis so it can be read off directly.
 2. **Rule evaluation** — the full rule base, tinted by firing strength, with the strongest rule per output term flagged `max` — those are the ones that set the clipping levels.
 3. **Accumulation** — the clipped conclusions and the resulting set the strategy integrates.
 4. **Defuzzification** — the crisp value placed back on the output's membership functions.
-5. **Response** — one transfer curve per input and one response surface per pair of inputs, the rest held at their current values. Nothing to configure: with three inputs every combination fits. Colour is keyed to the output variable's full declared range — fixed, never rescaled to what a slice happens to span — so a shade means the same number on every map and at every position of the inputs, and it stays visible how much of its range the controller actually uses. A map's two crosshair lines are the same cuts the curves above plot. Regions where no rule fires are drawn blank rather than guessed at. Collapsed by default.
 
 Also: a "Show formulas" modal rendering the membership functions and rules in LaTeX (via KaTeX) with a PDF download, and an "Export PDF" button that saves a one-page summary of the calculation.
 
@@ -60,8 +59,7 @@ src/
     shell/        app frame: appShell, tabBar, languageSwitcher, formulasModal
     workbench/    per-controller workspace: workbench (owns the step list),
                   controlRail, inputsPanel, outputPanel, flowStrip
-    steps/        one panel per inference stage, plus transferPanel and
-                  surfacePanel which responsePanel composes
+    steps/        one panel per inference stage
     chart/        plot.ts (canvas setup + data-to-pixel mapping shared by all
                   three renderers), live.ts (store + resize → one redraw per
                   frame), membershipGraph.ts
@@ -99,7 +97,6 @@ The `references/` folder holds PDFs and diagrams of the formulas used. The PhD m
 2. **Оцінка правил** — уся база правил із заливкою за силою спрацювання; найсильніше правило для кожного терму виходу позначено `max` — саме воно задає рівень обрізання.
 3. **Акумуляція** — обрізані висновки та результуюча множина, яку інтегрує стратегія дефазифікації.
 4. **Дефазифікація** — чітке значення, покладене назад на функції належності виходу.
-5. **Відгук** — по одній кривій передачі на кожен вхід і по одній поверхні відгуку на кожну пару входів, решта — на поточних значеннях. Нічого не треба налаштовувати: для трьох входів усі комбінації вміщаються. Колір прив'язаний до повного оголошеного діапазону вихідної змінної — фіксовано, без підлаштування під те, що охоплює конкретний зріз, — тож відтінок означає те саме число на кожній карті й за будь-якого положення входів, і лишається видно, якою часткою свого діапазону контролер насправді користується. Дві лінії на карті — це ті самі зрізи, які малюють криві вище. Області, де не спрацьовує жодне правило, лишаються порожніми, а не домальованими. Секція згорнута за замовчуванням.
 
 ### Додатково
 
