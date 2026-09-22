@@ -21,7 +21,7 @@ export type Unmount = () => void;
 export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount {
   container.innerHTML = `
     <div class="min-h-screen flex flex-col">
-      <header class="border-b border-graphite-200 bg-white/95 backdrop-blur sticky top-0 z-40">
+      <header class="border-b border-graphite-200 bg-white sticky top-0 z-40">
         <div class="max-w-[1400px] mx-auto px-4 py-2.5 flex items-center justify-between gap-3 flex-wrap">
           <div class="flex items-center gap-3 min-w-0">
             <span class="w-1 h-8 rounded-full bg-brand-600 shrink-0" aria-hidden="true"></span>
@@ -40,7 +40,7 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount
         <div id="tabBar" class="max-w-[1400px] w-full mx-auto px-4"></div>
       </header>
 
-      <main id="activeTab" class="max-w-[1400px] w-full mx-auto px-4 py-4 flex-1"></main>
+      <main id="activeTab" class="max-w-[1400px] w-full mx-auto px-4 py-4 max-lg:pb-24 flex-1"></main>
       <div id="modalRoot"></div>
     </div>
   `;
