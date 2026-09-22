@@ -4,22 +4,52 @@
 
 @layer components {
   .card {
-    @apply bg-white rounded-lg border border-slate-200 shadow-sm p-4;
+    @apply bg-white rounded-lg border border-graphite-200 shadow-sm p-4;
   }
   .card-title {
-    @apply text-sm font-semibold uppercase tracking-wide text-slate-600;
+    @apply text-sm font-semibold uppercase tracking-wide text-graphite-600;
+  }
+  /* Small caption above a value: used by the rail and the flow strip. */
+  .metric-label {
+    @apply text-[10px] font-semibold uppercase tracking-wider text-graphite-400;
+  }
+  .btn {
+    @apply px-3 py-1.5 text-sm rounded-md border border-graphite-300 bg-white text-graphite-700
+           hover:bg-graphite-50 hover:border-graphite-400 transition disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply px-3 py-1.5 text-sm rounded-md bg-brand-700 text-white border border-brand-700
+           hover:bg-brand-600 hover:border-brand-600 transition disabled:opacity-50;
+  }
+  .field {
+    @apply px-2 py-1 text-sm bg-white border border-graphite-300 rounded-md
+           focus:outline-none focus:ring-2 focus:ring-brand-300 focus:border-brand-500;
   }
 }
 
 @layer base {
   html {
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    /* Measured from the real header by appShell; the literal is only what the
+       first paint uses before that runs. Sticky offsets read it. */
+    --header-h: 57px;
   }
   body {
     min-height: 100vh;
   }
+  /*
+   * A canvas has an intrinsic width, and we write canvas.width on every draw
+   * to match the device pixel ratio. Left alone, that intrinsic size becomes
+   * the automatic minimum size of the grid or flex item holding the chart, so
+   * each redraw grows the page a little further. Capping it breaks the loop.
+   */
+  canvas {
+    display: block;
+    max-width: 100%;
+  }
   input[type="range"] {
     cursor: pointer;
+    accent-color: #0f6a61;
   }
   /*
    * Preflight hides [hidden] through a zero-specificity :where() rule that any
@@ -34,4 +64,15 @@
 
 .katex-display {
   margin: 0.25rem 0 !important;
+}
+
+/* Anchor-scrolling to a step must clear the sticky header and, below lg, the
+   sticky control rail stacked under it. */
+[data-step-section] {
+  scroll-margin-top: calc(var(--header-h) + 5rem);
+}
+@media (min-width: 1024px) {
+  [data-step-section] {
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
 }

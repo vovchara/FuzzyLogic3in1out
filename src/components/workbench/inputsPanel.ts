@@ -1,7 +1,7 @@
-import { q, qa } from "../dom";
-import type { FuzzySystem } from "../fuzzy/types";
-import { valueDecimals, valueStep } from "../utils/format";
-import type { AppShellCtx, Unmount } from "./appShell";
+import { q, qa } from "../../dom";
+import type { FuzzySystem } from "../../fuzzy/types";
+import { formatValue, valueStep } from "../../utils/format";
+import type { AppShellCtx, Unmount } from "../context";
 
 export function mountInputsPanel(
   container: HTMLElement,
@@ -10,26 +10,26 @@ export function mountInputsPanel(
 ): Unmount {
   container.innerHTML = `
     <h2 class="card-title" data-i18n="panels.inputs"></h2>
-    <div class="grid gap-4 mt-3">
+    <div class="grid gap-3.5 mt-3">
       ${system.inputs
         .map(
           (v) => `
         <label class="block" data-input="${v.id}">
           <div class="flex items-baseline justify-between text-sm">
-            <span class="font-medium text-slate-700" data-i18n="${v.nameKey}"></span>
-            <span class="font-mono tabular-nums text-slate-900" data-display></span>
+            <span class="font-medium text-graphite-700" data-i18n="${v.nameKey}"></span>
+            <span class="font-mono tabular-nums text-graphite-900" data-display></span>
           </div>
           <div class="flex items-center gap-3 mt-1">
             <input type="range"
               min="${v.range[0]}" max="${v.range[1]}" step="${valueStep(v.range)}"
               data-slider
-              class="flex-1 accent-slate-700" />
+              class="flex-1" />
             <input type="number"
               min="${v.range[0]}" max="${v.range[1]}" step="${valueStep(v.range)}"
               data-number
-              class="w-20 px-2 py-1 text-sm border border-slate-300 rounded-md tabular-nums" />
+              class="field w-20 font-mono tabular-nums" />
           </div>
-          <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
+          <div class="flex justify-between text-[10px] text-graphite-400 mt-1 font-mono">
             <span>${v.range[0]}</span><span>${v.range[1]}</span>
           </div>
         </label>`,
@@ -49,7 +49,7 @@ export function mountInputsPanel(
       const slider = q<HTMLInputElement>(row, "[data-slider]");
       const num = q<HTMLInputElement>(row, "[data-number]");
       const display = q(row, "[data-display]");
-      const valStr = value.toFixed(valueDecimals(variable.range));
+      const valStr = formatValue(value, variable.range);
       if (document.activeElement !== slider) slider.value = String(value);
       if (document.activeElement !== num) num.value = valStr;
       display.textContent = valStr;

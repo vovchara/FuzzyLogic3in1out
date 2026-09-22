@@ -1,4 +1,4 @@
-import { mountAppShell } from "./components/appShell";
+import { mountAppShell } from "./components/shell/appShell";
 import { createEngine, type FuzzyEngine } from "./fuzzy/engine";
 import { systems } from "./fuzzy/systems";
 import type { FuzzySystem } from "./fuzzy/types";
@@ -79,5 +79,11 @@ export async function startApp(root: HTMLElement): Promise<void> {
 
   onLanguageChange((lang) => store.setState({ language: lang }));
 
-  mountAppShell(root, { store, systems, updateInputs, switchSystem });
+  function getEngine(systemId: string): FuzzyEngine {
+    const engine = engines.get(systemId);
+    if (!engine) throw new Error(`Unknown system: ${systemId}`);
+    return engine;
+  }
+
+  mountAppShell(root, { store, systems, updateInputs, switchSystem, getEngine });
 }

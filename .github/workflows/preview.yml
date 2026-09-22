@@ -1,7 +1,11 @@
 name: Preview a branch on Pages
 
 # Publishes two versions of the app at once: master at the site root and the
-# chosen branch under /preview/, so the two URLs read as "before" and "after".
+# chosen branch under /preview/, so the two can be compared side by side.
+#
+# The usual use is the reverse of what the name suggests: master holds the
+# current app and /preview/ holds snapshot/before-workbench, the state of the
+# interface before the redesign, kept so the change can be shown to someone.
 #
 # Manual only. A later push to master runs deploy.yml, which replaces the whole
 # site and removes /preview/ — that is the intended way to clean up.
@@ -12,7 +16,7 @@ on:
       branch:
         description: "Branch to publish under /preview/"
         required: true
-        default: feat/workbench-redesign
+        default: snapshot/before-workbench
 
 permissions:
   contents: read
@@ -89,6 +93,6 @@ jobs:
           {
             echo "| | URL |"
             echo "| --- | --- |"
-            echo "| master (before) | ${{ steps.deployment.outputs.page_url }} |"
-            echo "| ${{ inputs.branch }} (after) | ${{ steps.deployment.outputs.page_url }}preview/ |"
+            echo "| master | ${{ steps.deployment.outputs.page_url }} |"
+            echo "| ${{ inputs.branch }} | ${{ steps.deployment.outputs.page_url }}preview/ |"
           } >> "$GITHUB_STEP_SUMMARY"

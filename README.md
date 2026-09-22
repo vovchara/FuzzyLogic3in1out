@@ -12,17 +12,20 @@ A static SPA that demonstrates a Mamdani-style fuzzy inference system with 3 inp
 
 ### What it does
 
-Given three inputs — Residual Energy (E), Transmission Coefficient (T), Delay Coefficient (D), all in `[0, 100]` — the system computes a Probability `P ∈ [0, 100]` using 27 fuzzy rules and centroid defuzzification. The UI shows:
+Three WSN controllers — clustering, aggregation and routing — each take three inputs and produce one output through a Mamdani inference with centroid defuzzification. Every controller is one data file; the UI is generated from it.
 
-- inputs as sliders and numeric fields,
-- membership graphs for each variable with hover tooltips,
-- the degree of membership of each term for the current inputs and output,
-- the crisp result and the most-active output term,
-- the rule base (highlighted rules whose firing strength > 0.5),
-- a "Show formulas" modal rendering the membership functions and rules in LaTeX (via KaTeX), with a PDF download,
-- an "Export PDF" button that saves a one-page summary of the calculation.
+The page is laid out as a workbench: a control rail pinned to the left holds the inputs and the current result, and the inference itself runs down the main column. A flow strip across the top of that column doubles as a diagram of the pipeline and as navigation through it, each node carrying a live reading of its stage.
 
-Language can be switched between Ukrainian (default) and English; the choice persists in `localStorage`.
+The four stages, in the order the inference performs them:
+
+1. **Fuzzification** — membership functions per input, with the current value marked and every term's degree projected onto the μ axis so it can be read off directly.
+2. **Rule evaluation** — the full rule base, tinted by firing strength, with the strongest rule per output term flagged `max` — those are the ones that set the clipping levels.
+3. **Accumulation** — the clipped conclusions and the resulting set the strategy integrates.
+4. **Defuzzification** — the crisp value placed back on the output's membership functions.
+
+Also: a "Show formulas" modal rendering the membership functions and rules in LaTeX (via KaTeX) with a PDF download, and an "Export PDF" button that saves a one-page summary of the calculation.
+
+Language can be switched between Ukrainian (default), English and Polish; the choice persists in `localStorage`, as do the inputs, the active controller and which sections are open.
 
 ### Extending with another fuzzy system
 
@@ -48,14 +51,31 @@ npm run typecheck    # tsc --noEmit
 
 ```
 src/
-  fuzzy/        engine + types + system definitions (data-driven)
-  i18n/         i18next setup + uk/en locale JSON
-  components/   mount-fn style components (no framework)
+  fuzzy/        engine + types + system definitions (data-driven; imports no UI)
+  i18n/         i18next setup + ua/en/pl locale JSON
+  components/
+    context.ts    AppShellCtx, Unmount, InferenceStep — the only contract
+                  components share; nothing imports a component for its types
+    shell/        app frame: appShell, tabBar, languageSwitcher, formulasModal
+    workbench/    per-controller workspace: workbench (owns the step list),
+                  controlRail, inputsPanel, outputPanel, flowStrip
+    steps/        one panel per inference stage
+    chart/        plot.ts (canvas setup + data-to-pixel mapping shared by all
+                  three renderers), live.ts (store + resize → one redraw per
+                  frame), membershipGraph.ts
   utils/        PDF export + LaTeX helpers
-  styles/       Tailwind entry
+  styles/       Tailwind entry + canvas colour tokens
 tests/          Vitest suite (ported from legacy __tests__/)
 references/     PDFs with formulas and membership-function diagrams
 ```
+
+Every panel receives the same `AppShellCtx` (store, systems, input updates, engine
+access) and returns an unmount function; nothing else is shared between them. Two
+properties are worth keeping, and both are one `grep` away from being checked:
+`fuzzy/` imports nothing from `components/`, and only `inputsPanel` ever calls
+`updateInputs` — every other panel is read-only, so no chart can change the
+system's state out from under the reader. A new
+inference step is one entry in `stepsFor()` in `workbench.ts` plus its mount function.
 
 ### Reference material
 
@@ -67,17 +87,22 @@ The `references/` folder holds PDFs and diagrams of the formulas used. The PhD m
 
 ### Що це
 
-Нечіткий логічний контролер (3 входи → 1 вихід) для обчислення вірогідності системи зв'язку на основі залишкової енергії (E), коефіцієнта передавання (T) та коефіцієнта затримки (D). Використовує `@thi.ng/fuzzy` з центроїдною дефазифікацією. Інтерфейс — ванільний TypeScript + Tailwind CSS, збірка через Vite. Весь застосунок — статичний SPA без серверної частини, розгортається на GitHub Pages.
+Три нечіткі контролери БСМ — кластеризація, агрегування та маршрутизація. Кожен приймає три входи й видає один вихід через виведення за Мамдані з центроїдною дефазифікацією. Кожен контролер — один файл даних, інтерфейс будується з нього. Використовує `@thi.ng/fuzzy`; ванільний TypeScript + Tailwind CSS, збірка через Vite. Статичний SPA без серверної частини, розгортається на GitHub Pages.
 
-### Можливості
+Сторінка побудована як верстак: ліворуч липка панель із входами й поточним результатом, у головній колонці — сам процес виведення. Зверху колонки — схема потоку, яка водночас є діаграмою конвеєра і навігацією по ньому; кожен вузол показує живий показник свого етапу.
 
-- Повзунки та числові поля для введення значень у діапазоні `[0, 100]`.
-- Графіки функцій приналежності з інтерактивними підказками.
-- Перегляд ступенів приналежності для кожного терма кожної змінної.
-- База з 27 правил (правила з силою спрацьовування > 0.5 підсвічуються).
+### Етапи, у порядку виконання виведення
+
+1. **Фазифікація** — функції належності кожного входу з позначеним поточним значенням; ступінь належності кожного терма спроєктовано на вісь μ, щоб його можна було зчитати напряму.
+2. **Оцінка правил** — уся база правил із заливкою за силою спрацювання; найсильніше правило для кожного терму виходу позначено `max` — саме воно задає рівень обрізання.
+3. **Акумуляція** — обрізані висновки та результуюча множина, яку інтегрує стратегія дефазифікації.
+4. **Дефазифікація** — чітке значення, покладене назад на функції належності виходу.
+
+### Додатково
+
 - Модальне вікно «Показати формули» з LaTeX-рендерингом (KaTeX) та експортом у PDF.
 - Кнопка «Експортувати PDF» зберігає односторінковий звіт обчислення.
-- Перемикання мови: українська (типова) / English — вибір зберігається у `localStorage`.
+- Перемикання мови: українська (типова) / English / Polski. У `localStorage` зберігаються вибір мови, значення входів, активний контролер і те, які секції розгорнуті.
 
 ### Як додати ще одну нечітку систему
 
@@ -96,4 +121,4 @@ npm run typecheck    # перевірка типів TypeScript
 
 ### Довідкові матеріали
 
-Папка `references/` містить PDF-файли з формулами та діаграмами функцій приналежності. Текст дисертації **не** комітиться — `.gitignore` виключає файли з масками `*_thesis.*`, `*_phd.*` та теку `/private/`.
+Папка `references/` містить PDF-файли з формулами та діаграмами функцій належності. Текст дисертації **не** комітиться — `.gitignore` виключає файли з масками `*_thesis.*`, `*_phd.*` та теку `/private/`.

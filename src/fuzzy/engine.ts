@@ -34,16 +34,52 @@ function hasSingletonOutput(system: FuzzySystem): boolean {
   return system.output.terms.every((t) => t.shape.kind === "singleton");
 }
 
+function inputMemberships(
+  system: FuzzySystem,
+  inputs: Readonly<Record<string, number>>,
+): Record<string, Record<string, number>> {
+  const out: Record<string, Record<string, number>> = {};
+  for (const v of system.inputs) out[v.id] = membershipsFor(v, inputs[v.id] ?? v.defaultValue);
+  return out;
+}
+
+/**
+ * Firing strength of one rule: the min-conjunction of its antecedent
+ * memberships. Exported because the rule table and the flow strip report the
+ * same number the inference uses, and a second copy of it could drift.
+ */
+export function ruleStrength(
+  rule: { readonly if: Readonly<Record<string, string>> },
+  memberships: Readonly<Record<string, Readonly<Record<string, number>>>>,
+): number {
+  let strength = 1;
+  for (const [varId, termId] of Object.entries(rule.if)) {
+    const m = memberships[varId]?.[termId] ?? 0;
+    if (m < strength) strength = m;
+  }
+  return strength;
+}
+
+/** Highest value a sampled curve reaches over a variable's domain. */
+export function curvePeak(
+  curve: FuzzyCurve,
+  range: readonly [number, number],
+  steps = 400,
+): number {
+  const [min, max] = range;
+  let peak = 0;
+  for (let i = 0; i <= steps; i++) {
+    const y = curve(min + ((max - min) * i) / steps);
+    if (y > peak) peak = y;
+  }
+  return peak;
+}
+
 function weightedSingletons(
   system: FuzzySystem,
   inputs: Readonly<Record<string, number>>,
 ): { output: number; activations: Record<string, number>; fired: boolean } {
-  const inputEvals: Record<string, Record<string, number>> = {};
-  for (const v of system.inputs) {
-    const evals: Record<string, number> = {};
-    for (const t of v.terms) evals[t.id] = evaluateShape(t.shape, inputs[v.id] ?? v.defaultValue);
-    inputEvals[v.id] = evals;
-  }
+  const inputEvals = inputMemberships(system, inputs);
 
   const activations: Record<string, number> = {};
   for (const term of system.output.terms) activations[term.id] = 0;
@@ -52,11 +88,7 @@ function weightedSingletons(
   let denominator = 0;
 
   for (const rule of system.rules) {
-    let strength = 1;
-    for (const [varId, termId] of Object.entries(rule.if)) {
-      const m = inputEvals[varId]?.[termId] ?? 0;
-      if (m < strength) strength = m;
-    }
+    const strength = ruleStrength(rule, inputEvals);
     if (strength <= 0) continue;
 
     for (const [varId, termId] of Object.entries(rule.then)) {
@@ -209,6 +241,20 @@ export function evaluateShape(shape: MembershipShape, x: number): number {
     case "singleton":
       return Math.abs(x - shape.at) < SINGLETON_EPS ? 1 : 0;
   }
+}
+
+/**
+ * The term carrying the most weight, or null when none carries enough to
+ * count. A variable sitting outside every term must stay unhighlighted rather
+ * than pick the first one at zero.
+ */
+export function strongestTerm(
+  memberships: Readonly<Record<string, number>>,
+  minDegree = 0.1,
+): string | null {
+  const id = getMostActiveTerm(memberships);
+  if (id === "N/A") return null;
+  return (memberships[id] ?? 0) > minDegree ? id : null;
 }
 
 export function getMostActiveTerm(memberships: Readonly<Record<string, number>>): string {

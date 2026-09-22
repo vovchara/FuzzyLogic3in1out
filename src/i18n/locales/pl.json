@@ -1,0 +1,139 @@
+{
+  "app": {
+    "name": "Sterowniki rozmyte dla BSC"
+  },
+  "actions": {
+    "exportPdf": "Eksportuj PDF",
+    "showFormulas": "Pokaż wzory",
+    "downloadPdf": "Pobierz PDF",
+    "close": "Zamknij"
+  },
+  "panels": {
+    "inputs": "Wartości wejściowe",
+    "output": "Wynik",
+    "aggregatedLevels": "Poziomy aktywacji:",
+    "aggregatedAxis": "Skumulowana funkcja przynależności μΣ",
+    "railToggle": "wejścia",
+    "defuzzAxis": "Funkcje przynależności wyjścia"
+  },
+  "steps": {
+    "fuzzification": "Rozmywanie",
+    "fuzzificationHint": "Każda liczba wejściowa zamienia się w stopnie przynależności do termów danej zmiennej.",
+    "rules": "Ocena reguł",
+    "rulesHint": "Siła zadziałania reguły to jej najsłabszy warunek: α = min(warunków).",
+    "aggregation": "Akumulacja",
+    "aggregationHint": "Wnioski reguł są obcinane do siły ich zadziałania i łączone w jeden zbiór rozmyty.",
+    "defuzzification": "Wyostrzanie",
+    "defuzzificationHint": "Z wynikowego zbioru odczytywana jest jedna liczba — odcięta jego środka ciężkości. To odpowiedź sterownika."
+  },
+  "memberships": {
+    "activationLevels": "poziomy aktywacji reguł",
+    "linguisticInterpretation": "interpretacja lingwistyczna wyniku"
+  },
+  "output": {
+    "mostActive": "Najbardziej aktywny term",
+    "resultTerm": "Term wyniku",
+    "noRuleFired": "Dla tych wejść żadna reguła nie zadziałała — wynik jest nieokreślony",
+    "defuzz": "Metoda wyostrzania",
+    "defuzzMethod": {
+      "centroid": "Centroid",
+      "bisector": "Bisektor",
+      "weighted-average": "Średnia ważona",
+      "weighted-sum": "Suma ważona"
+    }
+  },
+  "terms": {
+    "low": "Niska",
+    "medium": "Średnia",
+    "high": "Wysoka",
+    "veryLow": "Bardzo niska",
+    "veryHigh": "Bardzo wysoka",
+    "small": "Mała",
+    "large": "Duża",
+    "verySmall": "Bardzo mała",
+    "veryLarge": "Bardzo duża",
+    "none": "Brak",
+    "smallM": "Mały",
+    "mediumM": "Średni",
+    "largeM": "Duży",
+    "veryLowM": "Bardzo niski",
+    "lowM": "Niski",
+    "highM": "Wysoki",
+    "veryHighM": "Bardzo wysoki"
+  },
+  "systems": {
+    "commCtrl": {
+      "name": "Klastrowanie",
+      "description": "Ocena przydatności węzła sensorowego do roli głowicy klastra",
+      "variables": {
+        "residualEnergy": "Energia resztkowa (En)",
+        "packetDeliveryRatio": "Współczynnik dostarczania pakietów (PDR)",
+        "transmissionDelay": "Opóźnienie transmisji (TD)",
+        "probability": "Prawdopodobieństwo wyboru głowicy (ChP)"
+      }
+    },
+    "routing": {
+      "name": "Routing",
+      "description": "Ocena stanu trasy w BSC",
+      "variables": {
+        "residualEnergy": "Energia resztkowa (RE)",
+        "distance": "Odległość do następnego węzła (Dist)",
+        "linkQuality": "Jakość łącza (LQ)",
+        "routeStatus": "Stan trasy (RS)"
+      }
+    },
+    "aggregation": {
+      "name": "Agregacja",
+      "description": "Wyznaczanie priorytetu agregacji danych w BSC",
+      "variables": {
+        "expandedEnergy": "Zużycie energii (EE)",
+        "distanceToCH": "Odległość do głowicy klastra (Dis)",
+        "dataRate": "Szybkość transmisji (DR)",
+        "priority": "Priorytet agregacji (AP)"
+      }
+    }
+  },
+  "formulas": {
+    "title": "Wzory",
+    "variablesSection": "Zmienne lingwistyczne i funkcje przynależności",
+    "rulesSection": "Baza reguł",
+    "domain": "Dziedzina"
+  },
+  "rule": {
+    "if": "JEŻELI",
+    "and": "ORAZ",
+    "then": "TO",
+    "is": "=",
+    "alpha": "α",
+    "alphaHint": "Siła zadziałania reguły: minimum stopni przynależności wejść",
+    "legendTint": "Wypełnienie wiersza odpowiada sile zadziałania α.",
+    "legendDominant": "Znacznik max oznacza najsilniejszą regułę dla swojego termu wyjścia: to ona wyznacza poziom obcięcia.",
+    "dominant": "max",
+    "dominantHint": "Najsilniejsza z reguł prowadzących do tego termu wyjścia"
+  },
+  "languages": {},
+  "status": {
+    "draft": "Wersja robocza",
+    "draftBanner": "Ten sterownik jest w wersji roboczej — wzory i reguły wymagają weryfikacji."
+  },
+  "errors": {},
+  "pdf": {
+    "generatedAt": "Wygenerowano",
+    "inputs": "Wartości wejściowe",
+    "result": "Wynik",
+    "memberships": "Stopnie przynależności"
+  },
+  "flow": {
+    "label": "Etapy wnioskowania rozmytego",
+    "short": {
+      "fuzzification": "Rozmywanie",
+      "rules": "Reguły",
+      "aggregation": "Akumulacja",
+      "defuzzification": "Wyostrzanie"
+    },
+    "status": {
+      "activeTerms": "aktywnych termów: {{n}}",
+      "firedRules": "{{n}} z {{total}}"
+    }
+  }
+}

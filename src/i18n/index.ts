@@ -1,16 +1,17 @@
 import i18next, { type i18n } from "i18next";
 import en from "./locales/en.json";
+import pl from "./locales/pl.json";
 import ua from "./locales/ua.json";
 
-export type Language = "ua" | "en";
-export const LANGUAGES: readonly Language[] = ["ua", "en"] as const;
+export type Language = "ua" | "en" | "pl";
+export const LANGUAGES: readonly Language[] = ["ua", "en", "pl"] as const;
 const STORAGE_KEY = "fuzzy.lang";
 const DEFAULT_LANG: Language = "ua";
 
 function loadStoredLang(): Language {
   if (typeof localStorage === "undefined") return DEFAULT_LANG;
   const v = localStorage.getItem(STORAGE_KEY);
-  return v === "ua" || v === "en" ? v : DEFAULT_LANG;
+  return LANGUAGES.includes(v as Language) ? (v as Language) : DEFAULT_LANG;
 }
 
 let initialized = false;
@@ -24,6 +25,7 @@ export async function initI18n(): Promise<i18n> {
     resources: {
       ua: { translation: ua },
       en: { translation: en },
+      pl: { translation: pl },
     },
     interpolation: { escapeValue: false },
   });

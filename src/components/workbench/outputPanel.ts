@@ -1,7 +1,8 @@
-import { q, qa } from "../dom";
-import { t } from "../i18n";
-import type { FuzzySystem } from "../fuzzy/types";
-import type { AppShellCtx, Unmount } from "./appShell";
+import { q, qa } from "../../dom";
+import { t } from "../../i18n";
+import { formatOutput } from "../../utils/format";
+import type { FuzzySystem } from "../../fuzzy/types";
+import type { AppShellCtx, Unmount } from "../context";
 
 export function mountOutputPanel(
   container: HTMLElement,
@@ -11,27 +12,29 @@ export function mountOutputPanel(
   container.innerHTML = `
     <h2 class="card-title" data-i18n="panels.output"></h2>
     <div class="mt-3 grid gap-3">
-      <div class="flex items-baseline gap-3 flex-wrap">
-        <span class="text-sm text-slate-500" data-i18n="${system.output.nameKey}"></span>
-        <span class="text-3xl font-semibold tabular-nums" data-result>–</span>
-        <span class="text-sm text-slate-400">/ ${system.output.range[1]}</span>
+      <div>
+        <p class="metric-label" data-i18n="${system.output.nameKey}"></p>
+        <p class="flex items-baseline gap-2">
+          <span class="text-4xl font-semibold font-mono tabular-nums text-graphite-900"
+                data-result>–</span>
+          <span class="text-sm text-graphite-400">/ ${system.output.range[1]}</span>
+        </p>
       </div>
-      <div class="flex items-baseline gap-3" data-term-row>
-        <span class="text-sm text-slate-500">
+      <div class="flex items-baseline gap-2 flex-wrap" data-term-row>
+        <span class="text-xs text-graphite-500">
           <span data-label="activations" hidden data-i18n="output.mostActive"></span>
           <span data-label="interpretation" hidden data-i18n="output.resultTerm"></span>
         </span>
-        <span class="font-medium" data-active-term>–</span>
+        <span class="font-semibold" data-active-term>–</span>
       </div>
       <p class="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5"
          data-no-rules hidden data-i18n="output.noRuleFired"></p>
-      <div class="flex items-baseline gap-2 text-xs text-slate-500">
+      <div class="flex items-baseline gap-2 text-xs text-graphite-500">
         <span data-i18n="output.defuzz"></span>
-        <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-medium"
+        <span class="px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-100 font-medium"
               data-i18n="output.defuzzMethod.${system.defuzz}"></span>
       </div>
-      <button type="button" data-export
-        class="mt-2 self-start px-3 py-1.5 text-sm rounded-md bg-slate-900 text-white hover:bg-slate-800 transition disabled:opacity-50"
+      <button type="button" data-export class="btn-primary self-start"
         data-i18n="actions.exportPdf"></button>
     </div>
   `;
@@ -69,7 +72,7 @@ export function mountOutputPanel(
       el.hidden = (el.dataset.label === "activations") !== activations;
     }
 
-    resultEl.textContent = evaluation.output.toFixed(2);
+    resultEl.textContent = formatOutput(evaluation.output);
     const term = system.output.terms.find((t0) => t0.id === evaluation.mostActiveTerm);
     termEl.textContent = term ? t(term.nameKey) : evaluation.mostActiveTerm;
     termEl.style.color = term?.color ?? "";
@@ -78,7 +81,7 @@ export function mountOutputPanel(
   exportBtn.addEventListener("click", async () => {
     const { evaluation, inputs } = ctx.store.getState();
     if (!evaluation) return;
-    const { exportResultPdf } = await import("../utils/pdf");
+    const { exportResultPdf } = await import("../../utils/pdf");
     await exportResultPdf({ system, inputs, evaluation });
   });
 
