@@ -85,7 +85,7 @@ typings/
 # Build output
 dist/
 
-# PhD thesis / private manuscript — kept local, never tracked
+# Local working files, never tracked
 *_thesis.*
 *_phd.*
 /private/
