@@ -55,6 +55,8 @@
     "smallM": "Small",
     "mediumM": "Medium",
     "largeM": "Large",
+    "verySmallM": "Very small",
+    "veryLargeM": "Very large",
     "veryLowM": "Very low",
     "lowM": "Low",
     "highM": "High",
@@ -68,7 +70,7 @@
         "residualEnergy": "Residual Energy (En)",
         "packetDeliveryRatio": "Packet Delivery Ratio (PDR)",
         "transmissionDelay": "Transmission Delay (TD)",
-        "probability": "Cluster Head Probability (ChP)"
+        "suitability": "Suitability Index (ChP)"
       }
     },
     "routing": {

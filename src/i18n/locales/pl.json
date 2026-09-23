@@ -55,6 +55,8 @@
     "smallM": "Mały",
     "mediumM": "Średni",
     "largeM": "Duży",
+    "verySmallM": "Bardzo mały",
+    "veryLargeM": "Bardzo duży",
     "veryLowM": "Bardzo niski",
     "lowM": "Niski",
     "highM": "Wysoki",
@@ -68,7 +70,7 @@
         "residualEnergy": "Energia resztkowa (En)",
         "packetDeliveryRatio": "Współczynnik dostarczania pakietów (PDR)",
         "transmissionDelay": "Opóźnienie transmisji (TD)",
-        "probability": "Prawdopodobieństwo wyboru głowicy (ChP)"
+        "suitability": "Wskaźnik przydatności (ChP)"
       }
     },
     "routing": {
