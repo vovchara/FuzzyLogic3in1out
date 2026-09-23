@@ -55,6 +55,8 @@
     "smallM": "Малий",
     "mediumM": "Середній",
     "largeM": "Великий",
+    "verySmallM": "Дуже малий",
+    "veryLargeM": "Дуже великий",
     "veryLowM": "Дуже низький",
     "lowM": "Низький",
     "highM": "Високий",
@@ -68,7 +70,7 @@
         "residualEnergy": "Залишкова енергія (En)",
         "packetDeliveryRatio": "Коефіцієнт передавання (PDR)",
         "transmissionDelay": "Затримка (TD)",
-        "probability": "Ймовірність обирання (ChP)"
+        "suitability": "Показник придатності (ChP)"
       }
     },
     "routing": {
