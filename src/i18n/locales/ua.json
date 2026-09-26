@@ -51,7 +51,6 @@
     "large": "Велика",
     "verySmall": "Дуже мала",
     "veryLarge": "Дуже велика",
-    "none": "Немає",
     "smallM": "Малий",
     "mediumM": "Середній",
     "largeM": "Великий",
@@ -60,7 +59,11 @@
     "veryLowM": "Дуже низький",
     "lowM": "Низький",
     "highM": "Високий",
-    "veryHighM": "Дуже високий"
+    "veryHighM": "Дуже високий",
+    "noneM": "Відсутній",
+    "smallPl": "Малі",
+    "mediumPl": "Середні",
+    "largePl": "Великі"
   },
   "systems": {
     "commCtrl": {
@@ -89,7 +92,7 @@
       "variables": {
         "expandedEnergy": "Енергетичні витрати (EE)",
         "distanceToCH": "Відстань до головного вузла кластера (Dis)",
-        "dataRate": "Швидкість передачі (DR)",
+        "packetCount": "Кількість пакетів (Dat)",
         "priority": "Пріоритет агрегації (AP)"
       }
     }

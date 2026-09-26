@@ -13,12 +13,12 @@ const ns = "systems.aggregation";
 const v = (id: string) => `${ns}.variables.${id}`;
 
 const rules: readonly FuzzyRule[] = [
-  { id: "r01", if: { EE: "Small",  Dis: "Small",  DR: "Small" }, then: { AP: "VeryLarge" } },
-  { id: "r02", if: { EE: "Small",  Dis: "Medium", DR: "Medium" }, then: { AP: "Large" } },
-  { id: "r03", if: { EE: "Medium", Dis: "Medium", DR: "Small" }, then: { AP: "Medium" } },
-  { id: "r04", if: { EE: "Medium", Dis: "Large",  DR: "Medium" }, then: { AP: "Small" } },
-  { id: "r05", if: { EE: "Large",  Dis: "Small",  DR: "Large" }, then: { AP: "VerySmall" } },
-  { id: "r06", if: { EE: "Large",  Dis: "Large",  DR: "Large" }, then: { AP: "None" } },
+  { id: "r01", if: { EE: "Small",  Dis: "Small",  Dat: "Small" }, then: { AP: "VeryLarge" } },
+  { id: "r02", if: { EE: "Small",  Dis: "Medium", Dat: "Medium" }, then: { AP: "Large" } },
+  { id: "r03", if: { EE: "Medium", Dis: "Medium", Dat: "Small" }, then: { AP: "Medium" } },
+  { id: "r04", if: { EE: "Medium", Dis: "Large",  Dat: "Medium" }, then: { AP: "Small" } },
+  { id: "r05", if: { EE: "Large",  Dis: "Small",  Dat: "Large" }, then: { AP: "VerySmall" } },
+  { id: "r06", if: { EE: "Large",  Dis: "Large",  Dat: "Large" }, then: { AP: "None" } },
 ];
 
 export const aggregationSystem: FuzzySystem = {
@@ -32,11 +32,11 @@ export const aggregationSystem: FuzzySystem = {
       nameKey: v("expandedEnergy"),
       range: [0, 45],
       defaultValue: 22.5,
-      keyPoints: [5, 15, 25, 30],
+      keyPoints: [4, 8, 15, 20, 28],
       terms: [
-        { id: "Small",  nameKey: "terms.small",  color: COLOR.small,  shape: { kind: "trapezoid", points: [0, 0, 0, 15] } },
-        { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "triangle", points: [5, 15, 30] } },
-        { id: "Large",  nameKey: "terms.large",  color: COLOR.large,  shape: { kind: "trapezoid", points: [25, 45, 45, 45] } },
+        { id: "Small",  nameKey: "terms.smallPl",  color: COLOR.small,  shape: { kind: "trapezoid", points: [0, 0, 0, 8] } },
+        { id: "Medium", nameKey: "terms.mediumPl", color: COLOR.medium, shape: { kind: "triangle", points: [4, 15, 28] } },
+        { id: "Large",  nameKey: "terms.largePl",  color: COLOR.large,  shape: { kind: "trapezoid", points: [20, 45, 45, 45] } },
       ],
     },
     {
@@ -44,23 +44,25 @@ export const aggregationSystem: FuzzySystem = {
       nameKey: v("distanceToCH"),
       range: [0, 214],
       defaultValue: 107,
-      keyPoints: [30, 60, 90, 120],
+      keyPoints: [25, 45, 65, 80, 120],
       terms: [
-        { id: "Small",  nameKey: "terms.small",  color: COLOR.small,  shape: { kind: "trapezoid", points: [0, 0, 0, 60] } },
-        { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "triangle", points: [30, 60, 120] } },
-        { id: "Large",  nameKey: "terms.large",  color: COLOR.large,  shape: { kind: "trapezoid", points: [90, 214, 214, 214] } },
+        { id: "Small",  nameKey: "terms.small",  color: COLOR.small,  shape: { kind: "trapezoid", points: [0, 0, 0, 45] } },
+        { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "triangle", points: [25, 65, 120] } },
+        { id: "Large",  nameKey: "terms.large",  color: COLOR.large,  shape: { kind: "trapezoid", points: [80, 214, 214, 214] } },
       ],
     },
     {
-      id: "DR",
-      nameKey: v("dataRate"),
-      range: [0, 124],
-      defaultValue: 62,
-      keyPoints: [15, 30, 40, 60, 80],
+      // Chapter 3 puts the Large peak at 244 while MATLAB's range stops at
+      // 240, so within the range Large never quite reaches 1.
+      id: "Dat",
+      nameKey: v("packetCount"),
+      range: [0, 240],
+      defaultValue: 120,
+      keyPoints: [15, 25, 60, 90, 130],
       terms: [
-        { id: "Small",  nameKey: "terms.small",  color: COLOR.small,  shape: { kind: "trapezoid", points: [0, 0, 0, 30] } },
-        { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "triangle", points: [15, 40, 80] } },
-        { id: "Large",  nameKey: "terms.large",  color: COLOR.large,  shape: { kind: "trapezoid", points: [60, 124, 124, 124] } },
+        { id: "Small",  nameKey: "terms.small",  color: COLOR.small,  shape: { kind: "trapezoid", points: [0, 0, 0, 25] } },
+        { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "triangle", points: [15, 60, 130] } },
+        { id: "Large",  nameKey: "terms.large",  color: COLOR.large,  shape: { kind: "trapezoid", points: [90, 244, 244, 244] } },
       ],
     },
   ],
@@ -71,12 +73,12 @@ export const aggregationSystem: FuzzySystem = {
     defaultValue: 0,
     keyPoints: [0, 20, 40, 60, 80, 100],
     terms: [
-      { id: "None",      nameKey: "terms.none",      color: COLOR.none,      shape: { kind: "singleton", at: 0 } },
-      { id: "VerySmall", nameKey: "terms.verySmall", color: COLOR.verySmall, shape: { kind: "singleton", at: 20 } },
-      { id: "Small",     nameKey: "terms.small",     color: COLOR.small,     shape: { kind: "singleton", at: 40 } },
-      { id: "Medium",    nameKey: "terms.medium",    color: COLOR.medium,    shape: { kind: "singleton", at: 60 } },
-      { id: "Large",     nameKey: "terms.large",     color: COLOR.large,     shape: { kind: "singleton", at: 80 } },
-      { id: "VeryLarge", nameKey: "terms.veryLarge", color: COLOR.veryLarge, shape: { kind: "singleton", at: 100 } },
+      { id: "None",      nameKey: "terms.noneM",     color: COLOR.none,      shape: { kind: "singleton", at: 0 } },
+      { id: "VerySmall", nameKey: "terms.verySmallM", color: COLOR.verySmall, shape: { kind: "singleton", at: 20 } },
+      { id: "Small",     nameKey: "terms.smallM",    color: COLOR.small,     shape: { kind: "singleton", at: 40 } },
+      { id: "Medium",    nameKey: "terms.mediumM",   color: COLOR.medium,    shape: { kind: "singleton", at: 60 } },
+      { id: "Large",     nameKey: "terms.largeM",    color: COLOR.large,     shape: { kind: "singleton", at: 80 } },
+      { id: "VeryLarge", nameKey: "terms.veryLargeM", color: COLOR.veryLarge, shape: { kind: "singleton", at: 100 } },
     ],
   },
   rules,

@@ -51,7 +51,6 @@
     "large": "Duża",
     "verySmall": "Bardzo mała",
     "veryLarge": "Bardzo duża",
-    "none": "Brak",
     "smallM": "Mały",
     "mediumM": "Średni",
     "largeM": "Duży",
@@ -60,7 +59,11 @@
     "veryLowM": "Bardzo niski",
     "lowM": "Niski",
     "highM": "Wysoki",
-    "veryHighM": "Bardzo wysoki"
+    "veryHighM": "Bardzo wysoki",
+    "noneM": "Brak",
+    "smallPl": "Małe",
+    "mediumPl": "Średnie",
+    "largePl": "Duże"
   },
   "systems": {
     "commCtrl": {
@@ -89,7 +92,7 @@
       "variables": {
         "expandedEnergy": "Zużycie energii (EE)",
         "distanceToCH": "Odległość do głowicy klastra (Dis)",
-        "dataRate": "Szybkość transmisji (DR)",
+        "packetCount": "Liczba pakietów (Dat)",
         "priority": "Priorytet agregacji (AP)"
       }
     }
