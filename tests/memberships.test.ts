@@ -3,7 +3,7 @@ import { membershipsFor } from "../src/fuzzy/engine";
 import { commCtrlSystem } from "../src/fuzzy/systems/commCtrl";
 
 const [En, PDR, TD] = commCtrlSystem.inputs;
-const ChP = commCtrlSystem.output;
+const CHS = commCtrlSystem.output;
 
 describe("Calculate membership values", () => {
   test("residualEnergy (En) at x=0.3", () => {
@@ -27,8 +27,8 @@ describe("Calculate membership values", () => {
     expect(m.High).toBe(0);
   });
 
-  test("probability (ChP) at x=37.5", () => {
-    const m = membershipsFor(ChP, 37.5);
+  test("suitability (CHS) at x=37.5", () => {
+    const m = membershipsFor(CHS, 37.5);
     expect(m.Small).toBeCloseTo(0.5, 5);
     expect(m.Medium).toBeCloseTo(0.5, 5);
     expect(m.VerySmall).toBe(0);

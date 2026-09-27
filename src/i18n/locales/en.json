@@ -73,7 +73,7 @@
         "residualEnergy": "Residual Energy (En)",
         "packetDeliveryRatio": "Packet Delivery Ratio (PDR)",
         "transmissionDelay": "Transmission Delay (TD)",
-        "suitability": "Suitability Index (ChP)"
+        "suitability": "Cluster-Head Suitability (CHS)"
       }
     },
     "routing": {
