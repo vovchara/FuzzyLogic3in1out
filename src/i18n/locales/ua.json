@@ -73,7 +73,7 @@
         "residualEnergy": "Залишкова енергія (En)",
         "packetDeliveryRatio": "Коефіцієнт передавання (PDR)",
         "transmissionDelay": "Затримка (TD)",
-        "suitability": "Показник придатності (ChP)"
+        "suitability": "Показник придатності (CHS)"
       }
     },
     "routing": {

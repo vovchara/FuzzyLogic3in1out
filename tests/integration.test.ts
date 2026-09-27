@@ -4,7 +4,7 @@ import { commCtrlSystem } from "../src/fuzzy/systems/commCtrl";
 
 let engine: FuzzyEngine;
 const [En, PDR, TD] = commCtrlSystem.inputs;
-const ChP = commCtrlSystem.output;
+const CHS = commCtrlSystem.output;
 
 beforeAll(() => {
   engine = createEngine(commCtrlSystem);
@@ -83,13 +83,13 @@ describe("System robustness", () => {
 describe("Term coverage", () => {
   test("can produce VerySmall output", () => {
     const p = engine.evaluate({ En: 0, PDR: 0, TD: 0 }).output;
-    expect(getMostActiveTerm(membershipsFor(ChP, p))).toBe("VerySmall");
+    expect(getMostActiveTerm(membershipsFor(CHS, p))).toBe("VerySmall");
     expect(p).toBeLessThan(25);
   });
 
   test("can produce VeryLarge output", () => {
     const p = engine.evaluate({ En: 1, PDR: 1, TD: 0 }).output;
-    expect(getMostActiveTerm(membershipsFor(ChP, p))).toBe("VeryLarge");
+    expect(getMostActiveTerm(membershipsFor(CHS, p))).toBe("VeryLarge");
     expect(p).toBeGreaterThan(75);
   });
 

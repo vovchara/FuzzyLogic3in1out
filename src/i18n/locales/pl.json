@@ -73,7 +73,7 @@
         "residualEnergy": "Energia resztkowa (En)",
         "packetDeliveryRatio": "Współczynnik dostarczania pakietów (PDR)",
         "transmissionDelay": "Opóźnienie transmisji (TD)",
-        "suitability": "Wskaźnik przydatności (ChP)"
+        "suitability": "Przydatność na głowicę klastra (CHS)"
       }
     },
     "routing": {

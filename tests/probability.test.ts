@@ -12,11 +12,11 @@ const calc = (En: number, PDR: number, TD: number): number =>
   engine.evaluate({ En, PDR, TD }).output;
 
 describe("Matches ClusterWSN dissertation worked examples", () => {
-  test("En=0.2, PDR=0.1, TD=37 -> ChP≈8.32", () => {
+  test("En=0.2, PDR=0.1, TD=37 -> CHS≈8.32", () => {
     expect(calc(0.2, 0.1, 37)).toBeCloseTo(8.32, 1);
   });
 
-  test("En=0.8, PDR=0.7, TD=5 -> ChP≈75", () => {
+  test("En=0.8, PDR=0.7, TD=5 -> CHS≈75", () => {
     expect(calc(0.8, 0.7, 5)).toBeCloseTo(75, 0);
   });
 });
