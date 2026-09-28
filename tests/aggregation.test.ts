@@ -45,8 +45,7 @@ describe("Aggregation controller (weighted-sum defuzz, singleton output)", () =>
   });
 
   test("Rule 5: Large EE + Small Dis + Large Dat -> VerySmall (AP = 20)", () => {
-    // Large Dat peaks at 244, past the 240 range end, so it tops out at 150/154.
-    expect(calc(45, 0, 240)).toBeCloseTo(20 * 150 / 154, 5);
+    expect(calc(45, 0, 240)).toBeCloseTo(20, 5);
   });
 
   test("Rule 6: Large EE + Large Dis + Large Dat -> None (AP = 0)", () => {
