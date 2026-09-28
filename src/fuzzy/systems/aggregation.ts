@@ -52,8 +52,6 @@ export const aggregationSystem: FuzzySystem = {
       ],
     },
     {
-      // Chapter 3 puts the Large peak at 244 while MATLAB's range stops at
-      // 240, so within the range Large never quite reaches 1.
       id: "Dat",
       nameKey: v("packetCount"),
       range: [0, 240],
@@ -62,7 +60,7 @@ export const aggregationSystem: FuzzySystem = {
       terms: [
         { id: "Small",  nameKey: "terms.small",  color: COLOR.small,  shape: { kind: "trapezoid", points: [0, 0, 0, 25] } },
         { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "triangle", points: [15, 60, 130] } },
-        { id: "Large",  nameKey: "terms.large",  color: COLOR.large,  shape: { kind: "trapezoid", points: [90, 244, 244, 244] } },
+        { id: "Large",  nameKey: "terms.large",  color: COLOR.large,  shape: { kind: "trapezoid", points: [90, 240, 240, 240] } },
       ],
     },
   ],
