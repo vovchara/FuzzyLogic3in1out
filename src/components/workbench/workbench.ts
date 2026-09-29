@@ -1,11 +1,11 @@
 import { applyI18n, q, qa } from "../../dom";
-import { curvePeak, FIRE_EPS, ruleStrength } from "../../fuzzy/engine";
+import { curvePeak, FIRE_EPS, ruleStrength, strongestTerm } from "../../fuzzy/engine";
 import { systems as allSystems } from "../../fuzzy/systems";
 import type { FuzzySystem } from "../../fuzzy/types";
 import { t } from "../../i18n";
 import { formatDegree } from "../../utils/format";
 import { readJson, writeJson } from "../../utils/storage";
-import { mountAggregatedPanel, supportsAggregatedSet } from "../steps/aggregatedPanel";
+import { mountAggregatedPanel, mountCentroidPanel, supportsAggregatedSet } from "../steps/aggregatedPanel";
 import type { AppShellCtx, InferenceStep, Unmount } from "../context";
 import { mountControlRail } from "./controlRail";
 import { mountDefuzzPanel } from "../steps/defuzzPanel";
@@ -16,8 +16,8 @@ import { mountRulesPanel } from "../steps/rulesPanel";
 const OPEN_STATE_KEY = "fuzzy.openSections";
 
 // The steps sit in the order the inference actually runs: fuzzify the inputs,
-// evaluate the rules, accumulate the clipped conclusions, then read a crisp
-// number back off the resulting set.
+// evaluate the rules, accumulate the clipped conclusions, read a crisp number
+// off the resulting set, then interpret it through the output's terms.
 function stepsFor(system: FuzzySystem): InferenceStep[] {
   const steps: InferenceStep[] = [
     {
@@ -64,8 +64,35 @@ function stepsFor(system: FuzzySystem): InferenceStep[] {
         return `μΣmax = ${formatDegree(curvePeak(set.envelope, s.output.range))}`;
       },
     });
+    steps.push({
+      id: "defuzzification",
+      titleKey: "steps.defuzzification",
+      shortKey: "flow.short.defuzzification",
+      hintKey: "steps.defuzzificationHint",
+      mount: mountCentroidPanel,
+      status: (s) => t(`output.defuzzMethod.${s.defuzz}`),
+    });
+    // Reading the crisp value back through the output MFs is not part of
+    // defuzzification, so on this path it gets a step of its own.
+    steps.push({
+      id: "interpretation",
+      titleKey: "steps.interpretation",
+      shortKey: "flow.short.interpretation",
+      hintKey: "steps.interpretationHint",
+      mount: mountDefuzzPanel,
+      status: (s, state) => {
+        const ev = state.evaluation;
+        const ms = ev?.fired ? ev.memberships[s.output.id] : undefined;
+        const termId = ms ? strongestTerm(ms) : null;
+        const term = s.output.terms.find((tm) => tm.id === termId);
+        return term ? t(term.nameKey) : "";
+      },
+    });
+    return steps;
   }
 
+  // Singleton outputs have no resulting set: the weighted sum over the rule
+  // activations is the defuzzification, and that is what this panel shows.
   steps.push({
     id: "defuzzification",
     titleKey: "steps.defuzzification",

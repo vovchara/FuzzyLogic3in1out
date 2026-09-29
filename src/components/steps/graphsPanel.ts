@@ -4,7 +4,10 @@ import { q, qa } from "../../dom";
 import type { FuzzySystem, FuzzyVariable } from "../../fuzzy/types";
 import { liveRender } from "../chart/live";
 import type { AppShellCtx, Unmount } from "../context";
-import { drawMembershipGraph } from "../chart/membershipGraph";
+import { drawMembershipGraph, hexWithAlpha } from "../chart/membershipGraph";
+
+/** Row tint at full membership; lower degrees fade towards transparent. */
+const ROW_TINT_MAX = 0.28;
 
 /**
  * Fuzzification: every input's membership functions with the current value cut
@@ -40,13 +43,17 @@ export function mountGraphsPanel(
         canvas: q<HTMLCanvasElement>(wrap, "canvas"),
         currentValue: inputs[varId] ?? variable.defaultValue,
         highlightTermId: strongest,
+        activations: ms,
         readout: true,
       });
 
       if (!ms) continue;
       for (const termEl of qa(wrap, "[data-term]")) {
         const termId = termEl.dataset.term!;
-        q(termEl, "[data-value]").textContent = formatDegree(ms[termId] ?? 0);
+        const degree = ms[termId] ?? 0;
+        const color = variable.terms.find((term) => term.id === termId)!.color;
+        q(termEl, "[data-value]").textContent = formatDegree(degree);
+        termEl.style.backgroundColor = degree > 0 ? hexWithAlpha(color, ROW_TINT_MAX * degree) : "";
         termEl.dataset.active = String(termId === strongest);
       }
     }
@@ -70,8 +77,7 @@ function graphCardHtml(v: FuzzyVariable): string {
             (term) => `
           <li data-term="${term.id}"
               class="flex items-center justify-between gap-2 px-2 py-1 rounded transition
-                     data-[active=true]:ring-1 data-[active=true]:ring-brand-200
-                     data-[active=true]:bg-brand-50">
+                     data-[active=true]:ring-1 data-[active=true]:ring-brand-200">
             <span class="flex items-center gap-2 text-sm">
               <span class="w-2.5 h-2.5 rounded-full" style="background:${term.color}"></span>
               <span data-i18n="${term.nameKey}"></span>

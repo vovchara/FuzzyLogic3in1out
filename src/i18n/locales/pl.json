@@ -23,7 +23,9 @@
     "aggregation": "Akumulacja",
     "aggregationHint": "Wnioski reguł są obcinane do siły ich zadziałania i łączone w jeden zbiór rozmyty.",
     "defuzzification": "Wyostrzanie",
-    "defuzzificationHint": "Z wynikowego zbioru odczytywana jest jedna liczba — odcięta jego środka ciężkości. To odpowiedź sterownika."
+    "defuzzificationHint": "Z wynikowego zbioru odczytywana jest jedna liczba — odcięta jego środka ciężkości. To odpowiedź sterownika.",
+    "interpretation": "Interpretacja wyniku",
+    "interpretationHint": "Otrzymana liczba jest nakładana z powrotem na funkcje przynależności wyjścia — widać, do którego termu należy najbardziej."
   },
   "memberships": {
     "activationLevels": "poziomy aktywacji reguł",
@@ -133,7 +135,8 @@
       "fuzzification": "Rozmywanie",
       "rules": "Reguły",
       "aggregation": "Akumulacja",
-      "defuzzification": "Wyostrzanie"
+      "defuzzification": "Wyostrzanie",
+      "interpretation": "Interpretacja"
     },
     "status": {
       "activeTerms": "aktywnych termów: {{n}}",
