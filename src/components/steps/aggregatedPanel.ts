@@ -6,10 +6,32 @@ import { liveRender } from "../chart/live";
 import type { AppShellCtx, Unmount } from "../context";
 import { drawMembershipGraph } from "../chart/membershipGraph";
 
+/** Accumulation: the resulting set alone, before any number is read off it. */
 export function mountAggregatedPanel(
   container: HTMLElement,
   ctx: AppShellCtx,
   system: FuzzySystem,
+): Unmount {
+  return mountResultingSet(container, ctx, system, false);
+}
+
+/**
+ * Defuzzification on the centroid path: the same resulting set, now with the
+ * crisp value the strategy integrated out of it marked on the axis.
+ */
+export function mountCentroidPanel(
+  container: HTMLElement,
+  ctx: AppShellCtx,
+  system: FuzzySystem,
+): Unmount {
+  return mountResultingSet(container, ctx, system, true);
+}
+
+function mountResultingSet(
+  container: HTMLElement,
+  ctx: AppShellCtx,
+  system: FuzzySystem,
+  markResult: boolean,
 ): Unmount {
   const legend = system.output.terms
     .map(
@@ -46,7 +68,7 @@ export function mountAggregatedPanel(
     drawMembershipGraph({
       variable: system.output,
       canvas,
-      currentValue: aggregated ? (evaluation?.output ?? null) : null,
+      currentValue: markResult && aggregated ? (evaluation?.output ?? null) : null,
       highlightTermId: null,
       aggregated,
       formatMarker: formatOutput,

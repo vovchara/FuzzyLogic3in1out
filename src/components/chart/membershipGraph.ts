@@ -23,6 +23,12 @@ interface GraphParams {
   currentValue: number | null;
   highlightTermId: string | null;
   /**
+   * Each term's degree at the current value. When given, every curve is
+   * filled and weighted in proportion to it instead of only the highlighted
+   * one, so partial memberships read at a glance.
+   */
+  activations?: Readonly<Record<string, number>>;
+  /**
    * When given, the resulting fuzzy set is drawn instead of the plain term
    * curves: clipped terms filled, accumulated envelope on top.
    */
@@ -47,6 +53,7 @@ export function drawMembershipGraph({
   canvas,
   currentValue,
   highlightTermId,
+  activations,
   aggregated = null,
   readout = false,
   formatMarker,
@@ -68,7 +75,8 @@ export function drawMembershipGraph({
     drawAggregatedCurves(ctx, variable, aggregated, toX, toY, xMin, xMax);
   } else {
     for (const term of variable.terms) {
-      drawTermCurve(ctx, term, toX, toY, xMin, xMax, term.id === highlightTermId);
+      const weight = activations ? (activations[term.id] ?? 0) : term.id === highlightTermId ? 1 : 0;
+      drawTermCurve(ctx, term, toX, toY, xMin, xMax, weight);
     }
   }
 
@@ -308,8 +316,10 @@ function drawTermCurve(
   toY: (m: number) => number,
   xMin: number,
   xMax: number,
-  highlighted: boolean,
+  /** 0 draws the plain curve, 1 the fully highlighted one; between scales both. */
+  weight: number,
 ): void {
+  const highlighted = weight > 0;
   if (term.shape.kind === "singleton") {
     const at = term.shape.at;
     if (at < xMin || at > xMax) return;
@@ -342,7 +352,7 @@ function drawTermCurve(
 
   if (highlighted) {
     ctx.beginPath();
-    ctx.fillStyle = hexWithAlpha(term.color, 0.2);
+    ctx.fillStyle = hexWithAlpha(term.color, 0.2 * weight);
     ctx.moveTo(samples[0].x, toY(0));
     for (const s of samples) ctx.lineTo(s.x, s.y);
     ctx.lineTo(samples[samples.length - 1].x, toY(0));
@@ -352,14 +362,14 @@ function drawTermCurve(
 
   ctx.beginPath();
   ctx.strokeStyle = term.color;
-  ctx.lineWidth = highlighted ? 3 : 2;
+  ctx.lineWidth = 2 + weight;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
   samples.forEach((s, i) => (i === 0 ? ctx.moveTo(s.x, s.y) : ctx.lineTo(s.x, s.y)));
   ctx.stroke();
 }
 
-function hexWithAlpha(hex: string, alpha: number): string {
+export function hexWithAlpha(hex: string, alpha: number): string {
   const a = Math.round(Math.max(0, Math.min(1, alpha)) * 255)
     .toString(16)
     .padStart(2, "0");

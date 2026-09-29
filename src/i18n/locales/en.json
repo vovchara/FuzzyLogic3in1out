@@ -23,7 +23,9 @@
     "rulesHint": "A rule's firing strength is its weakest condition: α = min(conditions).",
     "aggregationHint": "Rule conclusions are clipped to their firing strength and merged into a single fuzzy set.",
     "defuzzification": "Defuzzification",
-    "defuzzificationHint": "One number is read off the resulting set — the abscissa of its centre of gravity. That is the controller's answer."
+    "defuzzificationHint": "One number is read off the resulting set — the abscissa of its centre of gravity. That is the controller's answer.",
+    "interpretation": "Result interpretation",
+    "interpretationHint": "The crisp value is placed back on the output's membership functions, showing which term it belongs to most."
   },
   "memberships": {
     "activationLevels": "rule activation levels",
@@ -133,7 +135,8 @@
       "fuzzification": "Fuzzification",
       "rules": "Rules",
       "aggregation": "Accumulation",
-      "defuzzification": "Defuzzification"
+      "defuzzification": "Defuzzification",
+      "interpretation": "Interpretation"
     },
     "status": {
       "activeTerms": "active terms: {{n}}",

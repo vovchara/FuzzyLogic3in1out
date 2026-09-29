@@ -16,12 +16,15 @@ Three WSN controllers — clustering, aggregation and routing — each take thre
 
 The page is laid out as a workbench: a control rail pinned to the left holds the inputs and the current result, and the inference itself runs down the main column. A flow strip across the top of that column doubles as a diagram of the pipeline and as navigation through it, each node carrying a live reading of its stage.
 
-The four stages, in the order the inference performs them:
+The stages, in the order the inference performs them:
 
 1. **Fuzzification** — membership functions per input, with the current value marked and every term's degree projected onto the μ axis so it can be read off directly.
 2. **Rule evaluation** — the full rule base, tinted by firing strength, with the strongest rule per output term flagged `max` — those are the ones that set the clipping levels.
-3. **Accumulation** — the clipped conclusions and the resulting set the strategy integrates.
-4. **Defuzzification** — the crisp value placed back on the output's membership functions.
+3. **Accumulation** — the clipped conclusions merged into the resulting set.
+4. **Defuzzification** — the same set with the crisp value the strategy integrated out of it (its centre of gravity) marked on the axis.
+5. **Result interpretation** — the crisp value placed back on the output's membership functions.
+
+The aggregation controller has singleton outputs and no resulting set, so it skips accumulation and interpretation: its defuzzification step shows the rule activations and the weighted sum computed from them.
 
 Also: a "Show formulas" modal rendering the membership functions and rules in LaTeX (via KaTeX) with a PDF download, and an "Export PDF" button that saves a one-page summary of the calculation.
 
@@ -91,8 +94,11 @@ inference step is one entry in `stepsFor()` in `workbench.ts` plus its mount fun
 
 1. **Фазифікація** — функції належності кожного входу з позначеним поточним значенням; ступінь належності кожного терма спроєктовано на вісь μ, щоб його можна було зчитати напряму.
 2. **Оцінка правил** — уся база правил із заливкою за силою спрацювання; найсильніше правило для кожного терму виходу позначено `max` — саме воно задає рівень обрізання.
-3. **Акумуляція** — обрізані висновки та результуюча множина, яку інтегрує стратегія дефазифікації.
-4. **Дефазифікація** — чітке значення, покладене назад на функції належності виходу.
+3. **Акумуляція** — обрізані висновки, об’єднані в результуючу множину.
+4. **Дефазифікація** — та сама множина з позначеним чітким значенням, яке з неї обчислила стратегія (центр ваги).
+5. **Інтерпретація результату** — чітке значення, покладене назад на функції належності виходу.
+
+Контролер агрегування має синглтонні виходи й не будує результуючої множини, тому акумуляції та інтерпретації в нього немає: крок дефазифікації показує рівні активації правил і зважену суму, обчислену з них.
 
 ### Додатково
 
