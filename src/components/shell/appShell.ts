@@ -1,22 +1,10 @@
 import { applyI18n, q } from "../../dom";
 import { onLanguageChange, t } from "../../i18n";
-import type { FuzzyEngine } from "../../fuzzy/engine";
-import type { FuzzySystem } from "../../fuzzy/types";
-import type { Store } from "../../state";
+import type { AppShellCtx, Unmount } from "../context";
 import { mountFormulasModal } from "./formulasModal";
 import { mountLanguageSwitcher } from "./languageSwitcher";
 import { mountTabBar } from "./tabBar";
 import { mountWorkbench } from "../workbench/workbench";
-
-export interface AppShellCtx {
-  store: Store;
-  systems: readonly FuzzySystem[];
-  updateInputs(patch: Readonly<Record<string, number>>): void;
-  switchSystem(id: string): void;
-  getEngine(systemId: string): FuzzyEngine;
-}
-
-export type Unmount = () => void;
 
 export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount {
   container.innerHTML = `
@@ -69,8 +57,7 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount
   function syncTitle(force = false): void {
     const { activeSystemId } = ctx.store.getState();
     if (activeSystemId === titledSystemId && !force) return;
-    const system = ctx.systems.find((s) => s.id === activeSystemId);
-    if (!system) return;
+    const system = ctx.getSystem(activeSystemId);
     titledSystemId = activeSystemId;
     headingEl.dataset.i18n = system.descriptionKey;
     headingEl.textContent = t(system.descriptionKey);

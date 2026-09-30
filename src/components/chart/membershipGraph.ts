@@ -3,7 +3,7 @@ import type { AggregatedSet, FuzzyCurve, FuzzyTerm, FuzzyVariable } from "../../
 import { t } from "../../i18n";
 import { CHART } from "../../styles/chart";
 import { formatDegree, formatTick, formatValue } from "../../utils/format";
-import { drawAxes, drawGrid, preparePlot, type Plot } from "./plot";
+import { drawAxes, drawGrid, niceTicks, preparePlot, type Plot } from "./plot";
 
 const CURVE_STEPS = 100;
 const ENVELOPE_STEPS = 400;
@@ -16,6 +16,8 @@ const PAD = { left: 56, right: 16, top: 28, bottom: 48 } as const;
 const READOUT_EPS = 0.005;
 /** Minimum vertical gap between two readout labels in the left gutter. */
 const READOUT_SPACING = 12;
+/** Minimum horizontal space between two x-axis labels, in CSS pixels. */
+const TICK_GAP = 4;
 
 interface GraphParams {
   variable: FuzzyVariable;
@@ -68,7 +70,7 @@ export function drawMembershipGraph({
   const toX = plot.x;
   const toY = plot.y;
 
-  drawGrid(plot);
+  drawGrid(plot, 4, 4, niceTicks(variable.range));
   drawAxes(plot);
 
   if (aggregated) {
@@ -227,12 +229,23 @@ function drawAxisLabels(plot: Plot, variable: FuzzyVariable, readoutYs: readonly
   ctx.fillStyle = CHART.tick;
   ctx.font = "10px ui-sans-serif, system-ui";
   ctx.textAlign = "center";
-  const drawn = new Set<number>();
-  for (const v of [variable.range[0], ...(variable.keyPoints ?? []), variable.range[1]]) {
-    if (drawn.has(v)) continue;
-    drawn.add(v);
-    ctx.fillText(formatTick(v), plot.x(v), plot.bottom + 13);
-  }
+  // An even scale, as MATLAB draws it: the same whatever the terms are, so a
+  // trained controller's axis reads like the expert one. The domain ends go
+  // first and always stay; a tick that would touch an already drawn label —
+  // 200 next to a domain end at 214 — is skipped.
+  const placed: [number, number][] = [];
+  const label = (v: number): void => {
+    const text = formatTick(v);
+    const half = ctx.measureText(text).width / 2;
+    const left = plot.x(v) - half;
+    const right = plot.x(v) + half;
+    if (placed.some(([a, b]) => left < b + TICK_GAP && right > a - TICK_GAP)) return;
+    placed.push([left, right]);
+    ctx.fillText(text, plot.x(v), plot.bottom + 13);
+  };
+  label(variable.range[0]);
+  label(variable.range[1]);
+  for (const v of niceTicks(variable.range)) label(v);
 
   // The μ scale is only there to orient the reader; an actual readout at the
   // same height says more, so the scale yields rather than overprint it.

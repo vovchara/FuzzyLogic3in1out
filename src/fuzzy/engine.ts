@@ -118,6 +118,11 @@ function weightedSingletons(
 export interface FuzzyEngine {
   readonly system: FuzzySystem;
   evaluate(inputs: Readonly<Record<string, number>>): FuzzyEvaluation;
+  /**
+   * Only the crisp output, skipping the per-term curves `evaluate` also builds
+   * for the charts. Training calls this hundreds of thousands of times.
+   */
+  crisp(inputs: Readonly<Record<string, number>>): number;
 }
 
 export function createEngine(system: FuzzySystem): FuzzyEngine {
@@ -180,13 +185,20 @@ export function createEngine(system: FuzzySystem): FuzzyEngine {
     return { envelope, clipped };
   }
 
+  const weightedPath =
+    system.defuzz === "weighted-average" || system.defuzz === "weighted-sum" || singletonOutput;
+
+  function crisp(inputs: Readonly<Record<string, number>>): number {
+    return weightedPath ? weightedSingletons(system, inputs).output : runStrategyDefuzz(inputs);
+  }
+
   function evaluate(inputs: Readonly<Record<string, number>>): FuzzyEvaluation {
     let output: number;
     let fired: boolean;
     let outputTermActivations: Record<string, number> | undefined;
     let aggregated: AggregatedSet | undefined;
 
-    if (system.defuzz === "weighted-average" || system.defuzz === "weighted-sum" || singletonOutput) {
+    if (weightedPath) {
       const r = weightedSingletons(system, inputs);
       output = r.output;
       outputTermActivations = r.activations;
@@ -216,7 +228,7 @@ export function createEngine(system: FuzzySystem): FuzzyEngine {
       : { output, fired, memberships, mostActiveTerm };
   }
 
-  return { system, evaluate };
+  return { system, evaluate, crisp };
 }
 
 export function membershipsFor(v: FuzzyVariable, x: number): Record<string, number> {

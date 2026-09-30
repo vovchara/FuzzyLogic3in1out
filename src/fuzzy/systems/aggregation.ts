@@ -32,7 +32,6 @@ export const aggregationSystem: FuzzySystem = {
       nameKey: v("expandedEnergy"),
       range: [0, 45],
       defaultValue: 22.5,
-      keyPoints: [4, 8, 15, 20, 28],
       terms: [
         { id: "Small",  nameKey: "terms.smallPl",  color: COLOR.small,  shape: { kind: "trapezoid", points: [0, 0, 0, 8] } },
         { id: "Medium", nameKey: "terms.mediumPl", color: COLOR.medium, shape: { kind: "triangle", points: [4, 15, 28] } },
@@ -44,7 +43,6 @@ export const aggregationSystem: FuzzySystem = {
       nameKey: v("distanceToCH"),
       range: [0, 214],
       defaultValue: 107,
-      keyPoints: [25, 45, 65, 80, 120],
       terms: [
         { id: "Small",  nameKey: "terms.small",  color: COLOR.small,  shape: { kind: "trapezoid", points: [0, 0, 0, 45] } },
         { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "triangle", points: [25, 65, 120] } },
@@ -56,7 +54,6 @@ export const aggregationSystem: FuzzySystem = {
       nameKey: v("packetCount"),
       range: [0, 240],
       defaultValue: 120,
-      keyPoints: [15, 25, 60, 90, 130],
       terms: [
         { id: "Small",  nameKey: "terms.small",  color: COLOR.small,  shape: { kind: "trapezoid", points: [0, 0, 0, 25] } },
         { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "triangle", points: [15, 60, 130] } },
@@ -69,7 +66,6 @@ export const aggregationSystem: FuzzySystem = {
     nameKey: v("priority"),
     range: [0, 100],
     defaultValue: 0,
-    keyPoints: [0, 20, 40, 60, 80, 100],
     terms: [
       { id: "None",      nameKey: "terms.noneM",     color: COLOR.none,      shape: { kind: "singleton", at: 0 } },
       { id: "VerySmall", nameKey: "terms.verySmallM", color: COLOR.verySmall, shape: { kind: "singleton", at: 20 } },

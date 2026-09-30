@@ -6,7 +6,8 @@
     "exportPdf": "Eksportuj PDF",
     "showFormulas": "Pokaż wzory",
     "downloadPdf": "Pobierz PDF",
-    "close": "Zamknij"
+    "close": "Zamknij",
+    "cancel": "Anuluj"
   },
   "panels": {
     "inputs": "Wartości wejściowe",
@@ -142,5 +143,94 @@
       "activeTerms": "aktywnych termów: {{n}}",
       "firedRules": "{{n}} z {{total}}"
     }
+  },
+  "training": {
+    "title": "Optymalizacja genetyczna",
+    "stateExpert": "Parametry eksperckie",
+    "stateTrained": "Zoptymalizowano AG",
+    "hint": "Algorytm genetyczny dopasowuje funkcje przynależności i bazę reguł do zbioru danych z kolumnami RE, Dist, LQ, RS.",
+    "upload": "Optymalizuj na zbiorze danych…",
+    "template": "Pobierz testowy zbiór danych",
+    "cancel": "Zatrzymaj",
+    "progress": "Pokolenie {{gen}} · najlepsze f(x) = {{best}}",
+    "cancelled": "Optymalizację zatrzymano — parametry sterownika bez zmian.",
+    "skipped": "Pominięto wierszy z błędnymi wartościami: {{n}}",
+    "rmseTrain": "RMSE (zbiór uczący)",
+    "rmseTest": "RMSE (zbiór testowy)",
+    "dataset": "Zbiór danych",
+    "changes": "Co się zmieniło",
+    "ruleOff": "wyłączona",
+    "export": "Eksportuj raport (.xlsx)",
+    "reset": "Przywróć parametry eksperckie",
+    "errors": {
+      "unreadable": "Nie udało się odczytać pliku. Obsługiwane są .xlsx i .csv.",
+      "empty": "Plik jest pusty.",
+      "missingColumns": "W pierwszym wierszu brakuje kolumn: {{columns}}",
+      "tooFew": "Za mało poprawnych wierszy: {{valid}} (potrzeba co najmniej {{min}}).",
+      "failed": "Optymalizacja zakończyła się błędem."
+    },
+    "resetConfirm": {
+      "title": "Przywrócić parametry eksperckie?",
+      "body": "Wynik optymalizacji genetycznej zostanie usunięty, a sterownik wróci do parametrów i reguł eksperta. Aby go odzyskać, trzeba ponownie uruchomić optymalizację.",
+      "confirm": "Przywróć"
+    },
+    "sizeDialog": {
+      "title": "Testowy zbiór danych",
+      "body": "Syntetyczne dane demonstracyjne, wygenerowane przez sterownik z celowo przesuniętymi parametrami. Więcej wierszy daje stabilniejszy wynik, ale dłuższe uczenie.",
+      "confirm": "Pobierz",
+      "rows": "{{n}} wierszy",
+      "tag0": "szybkie demo",
+      "tag1": "średni",
+      "tag2": "duży",
+      "timeSec": "uczenie ≈ {{n}} s",
+      "timeMin": "uczenie ≈ {{n}} min"
+    },
+    "stallWarmup": "kryterium zatrzymania działa po {{n}} pokoleniach",
+    "stallChange": "średnia zmiana f(x) {{change}} · stop przy ≤ {{tol}}",
+    "generations": "Pokolenia",
+    "stoppedBy": {
+      "tolerance": "krzywa się wypłaszczyła",
+      "generations": "osiągnięto limit"
+    },
+    "trainedNote": "Sterownik działa na zoptymalizowanych parametrach",
+    "chartEmpty": "Wykres zbieżności pojawi się podczas uczenia.",
+    "legendBest": "najlepsze f(x)",
+    "legendMean": "średnie w populacji f(x)",
+    "ruleN": "Reguła {{n}}",
+    "report": {
+      "sheetSummary": "Podsumowanie",
+      "sheetParameters": "Parametry",
+      "sheetRules": "Reguły",
+      "sheetGenerations": "Pokolenia",
+      "variable": "Zmienna",
+      "term": "Term",
+      "parameter": "Parametr",
+      "before": "przed",
+      "after": "po",
+      "delta": "zmiana",
+      "bias": "środek b",
+      "sigma": "szerokość σ",
+      "rule": "Reguła",
+      "controller": "Sterownik",
+      "dataset": "Zbiór danych",
+      "trainedAt": "Czas uczenia",
+      "trainRows": "Wiersze uczące",
+      "testRows": "Wiersze testowe",
+      "generations": "Pokolenia",
+      "stoppedBy": "Powód zatrzymania",
+      "rmseTrainBefore": "RMSE uczący, przed",
+      "rmseTrainAfter": "RMSE uczący, po",
+      "rmseTestBefore": "RMSE testowy, przed",
+      "rmseTestAfter": "RMSE testowy, po",
+      "changedParams": "Zmienione parametry FP",
+      "changedRules": "Zmienione reguły",
+      "generation": "Pokolenie"
+    },
+    "changesCount": "{{params}} parametrów FP, {{rules}} reguł",
+    "curveBefore": "przed uczeniem",
+    "curveAfter": "po",
+    "centre": "środek b",
+    "width": "szerokość σ",
+    "rulesChanged": "Zmienione reguły"
   }
 }

@@ -3,6 +3,7 @@ import { t } from "../../i18n";
 import { formatOutput } from "../../utils/format";
 import type { FuzzySystem } from "../../fuzzy/types";
 import type { AppShellCtx, Unmount } from "../context";
+import { DOWNLOAD_ICON } from "../icons";
 
 export function mountOutputPanel(
   container: HTMLElement,
@@ -34,8 +35,9 @@ export function mountOutputPanel(
         <span class="px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-100 font-medium"
               data-i18n="output.defuzzMethod.${system.defuzz}"></span>
       </div>
-      <button type="button" data-export class="btn-primary self-start"
-        data-i18n="actions.exportPdf"></button>
+      <button type="button" data-export class="btn-primary self-start inline-flex items-center gap-1.5">
+        ${DOWNLOAD_ICON}<span data-i18n="actions.exportPdf"></span>
+      </button>
     </div>
   `;
 

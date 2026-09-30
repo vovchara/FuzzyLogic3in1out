@@ -7,6 +7,8 @@ export interface AppState {
   inputs: Record<string, number>;
   evaluation: FuzzyEvaluation | null;
   formulasOpen: boolean;
+  /** Bumped whenever a controller's parameters change, so views rebuild from it. */
+  systemRevision: number;
 }
 
 type Listener = (state: AppState) => void;

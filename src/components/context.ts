@@ -1,4 +1,5 @@
 import type { FuzzyEngine } from "../fuzzy/engine";
+import type { TrainingRecord } from "../training/record";
 import type { FuzzySystem } from "../fuzzy/types";
 import type { AppState, Store } from "../state";
 
@@ -13,6 +14,13 @@ export interface AppShellCtx {
   updateInputs(patch: Readonly<Record<string, number>>): void;
   switchSystem(id: string): void;
   getEngine(systemId: string): FuzzyEngine;
+  /** The controller as it currently runs: the expert one, or its optimised version. */
+  getSystem(systemId: string): FuzzySystem;
+  /** The controller as written in the code, before any training. */
+  getExpertSystem(systemId: string): FuzzySystem;
+  getTraining(systemId: string): TrainingRecord | undefined;
+  /** Swaps in an optimised controller, or restores the expert one with null. */
+  setTraining(systemId: string, record: TrainingRecord | null): void;
 }
 
 /** Every component returns one of these; calling it releases all its listeners. */

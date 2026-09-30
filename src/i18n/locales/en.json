@@ -6,7 +6,8 @@
     "exportPdf": "Export PDF",
     "showFormulas": "Show formulas",
     "downloadPdf": "Download PDF",
-    "close": "Close"
+    "close": "Close",
+    "cancel": "Cancel"
   },
   "panels": {
     "inputs": "Inputs",
@@ -142,5 +143,94 @@
       "activeTerms": "active terms: {{n}}",
       "firedRules": "{{n}} of {{total}}"
     }
+  },
+  "training": {
+    "title": "Genetic optimisation",
+    "stateExpert": "Expert parameters",
+    "stateTrained": "GA-optimised",
+    "hint": "A genetic algorithm tunes the membership functions and the rule base to a dataset with columns RE, Dist, LQ, RS.",
+    "upload": "Optimise on a dataset…",
+    "template": "Get test dataset",
+    "cancel": "Stop",
+    "progress": "Generation {{gen}} · best f(x) = {{best}}",
+    "cancelled": "Optimisation stopped — the controller is unchanged.",
+    "skipped": "Rows skipped for invalid values: {{n}}",
+    "rmseTrain": "RMSE (training set)",
+    "rmseTest": "RMSE (test set)",
+    "dataset": "Dataset",
+    "changes": "What changed",
+    "ruleOff": "off",
+    "export": "Export report (.xlsx)",
+    "reset": "Restore expert parameters",
+    "errors": {
+      "unreadable": "Could not read the file. .xlsx and .csv are supported.",
+      "empty": "The file is empty.",
+      "missingColumns": "The first row is missing columns: {{columns}}",
+      "tooFew": "Too few valid rows: {{valid}} (at least {{min}} needed).",
+      "failed": "Optimisation failed."
+    },
+    "resetConfirm": {
+      "title": "Restore expert parameters?",
+      "body": "The genetic optimisation result will be discarded and the controller will return to the expert's parameters and rules. Getting it back means running the optimisation again.",
+      "confirm": "Restore"
+    },
+    "sizeDialog": {
+      "title": "Test dataset",
+      "body": "Synthetic demo data, produced by the controller with deliberately shifted parameters. More rows give a steadier result but a longer run.",
+      "confirm": "Download",
+      "rows": "{{n}} rows",
+      "tag0": "quick demo",
+      "tag1": "medium",
+      "tag2": "large",
+      "timeSec": "training ≈ {{n}} s",
+      "timeMin": "training ≈ {{n}} min"
+    },
+    "stallWarmup": "the stopping test starts after {{n}} generations",
+    "stallChange": "average f(x) change {{change}} · stops at ≤ {{tol}}",
+    "generations": "Generations",
+    "stoppedBy": {
+      "tolerance": "curve flattened",
+      "generations": "limit reached"
+    },
+    "trainedNote": "The controller runs on optimised parameters",
+    "chartEmpty": "The convergence chart appears during training.",
+    "legendBest": "best f(x)",
+    "legendMean": "population mean f(x)",
+    "ruleN": "Rule {{n}}",
+    "report": {
+      "sheetSummary": "Summary",
+      "sheetParameters": "Parameters",
+      "sheetRules": "Rules",
+      "sheetGenerations": "Generations",
+      "variable": "Variable",
+      "term": "Term",
+      "parameter": "Parameter",
+      "before": "before",
+      "after": "after",
+      "delta": "change",
+      "bias": "centre b",
+      "sigma": "width σ",
+      "rule": "Rule",
+      "controller": "Controller",
+      "dataset": "Dataset",
+      "trainedAt": "Trained at",
+      "trainRows": "Training rows",
+      "testRows": "Test rows",
+      "generations": "Generations",
+      "stoppedBy": "Stopped because",
+      "rmseTrainBefore": "RMSE training, before",
+      "rmseTrainAfter": "RMSE training, after",
+      "rmseTestBefore": "RMSE test, before",
+      "rmseTestAfter": "RMSE test, after",
+      "changedParams": "MF parameters changed",
+      "changedRules": "Rules changed",
+      "generation": "Generation"
+    },
+    "changesCount": "{{params}} MF parameters, {{rules}} rules",
+    "curveBefore": "before training",
+    "curveAfter": "after",
+    "centre": "centre b",
+    "width": "width σ",
+    "rulesChanged": "Changed rules"
   }
 }

@@ -1,6 +1,8 @@
 import { mountAppShell } from "./components/shell/appShell";
 import { createEngine, type FuzzyEngine } from "./fuzzy/engine";
 import { systems } from "./fuzzy/systems";
+import { canTrain } from "./training/config";
+import { rebase, sameStructure, type TrainingRecord } from "./training/record";
 import type { FuzzySystem } from "./fuzzy/types";
 import { getLang, initI18n, onLanguageChange } from "./i18n";
 import { createStore, type Store } from "./state";
@@ -8,14 +10,29 @@ import { readJson, readString, writeJson, writeString } from "./utils/storage";
 
 const INPUTS_KEY = "fuzzy.inputs";
 const ACTIVE_SYSTEM_KEY = "fuzzy.activeSystem";
+const TRAINING_KEY = "fuzzy.training";
 
 type SavedInputs = Record<string, Record<string, number>>;
+type SavedTraining = Record<string, TrainingRecord>;
 
 export async function startApp(root: HTMLElement): Promise<void> {
   await initI18n();
 
+  const expertById = new Map(systems.map((s) => [s.id, s]));
+  const current = new Map(expertById);
   const engines = new Map<string, FuzzyEngine>();
-  for (const s of systems) engines.set(s.id, createEngine(s));
+
+  // An optimised controller outlives a reload: losing a result that took a
+  // run to produce to an accidental refresh mid-demo is the worse failure.
+  // It is dropped only when the expert controller has changed shape since.
+  const training: SavedTraining = {};
+  for (const [id, record] of Object.entries(readJson<SavedTraining>(TRAINING_KEY, {}))) {
+    const expert = expertById.get(id);
+    if (!expert || !canTrain(expert) || !record?.system || !sameStructure(expert, record.system)) continue;
+    training[id] = record;
+    current.set(id, rebase(expert, record.system));
+  }
+  for (const s of current.values()) engines.set(s.id, createEngine(s));
 
   const saved = readJson<SavedInputs>(INPUTS_KEY, {});
 
@@ -52,6 +69,7 @@ export async function startApp(root: HTMLElement): Promise<void> {
     inputs: initialInputs,
     evaluation: initialEvaluation,
     formulasOpen: false,
+    systemRevision: 0,
   });
 
   function updateInputs(patch: Readonly<Record<string, number>>): void {
@@ -85,5 +103,42 @@ export async function startApp(root: HTMLElement): Promise<void> {
     return engine;
   }
 
-  mountAppShell(root, { store, systems, updateInputs, switchSystem, getEngine });
+  function getSystem(systemId: string): FuzzySystem {
+    const system = current.get(systemId);
+    if (!system) throw new Error(`Unknown system: ${systemId}`);
+    return system;
+  }
+
+  function getExpertSystem(systemId: string): FuzzySystem {
+    const system = expertById.get(systemId);
+    if (!system) throw new Error(`Unknown system: ${systemId}`);
+    return system;
+  }
+
+  function setTraining(systemId: string, record: TrainingRecord | null): void {
+    const expert = getExpertSystem(systemId);
+    const system = record ? rebase(expert, record.system) : expert;
+    current.set(systemId, system);
+    engines.set(systemId, createEngine(system));
+    if (record) training[systemId] = record;
+    else delete training[systemId];
+    writeJson(TRAINING_KEY, training);
+
+    store.setState((s) => ({
+      systemRevision: s.systemRevision + 1,
+      evaluation: s.activeSystemId === systemId ? getEngine(systemId).evaluate(s.inputs) : s.evaluation,
+    }));
+  }
+
+  mountAppShell(root, {
+    store,
+    systems,
+    updateInputs,
+    switchSystem,
+    getEngine,
+    getSystem,
+    getExpertSystem,
+    getTraining: (id) => training[id],
+    setTraining,
+  });
 }
