@@ -152,7 +152,7 @@
     "upload": "Оптимізувати за датасетом…",
     "template": "Отримати тестовий датасет",
     "cancel": "Зупинити",
-    "progress": "Покоління {{gen}} · найкраще f(x) = {{best}}",
+    "progress": "Покоління {{gen}} · RMSE {{rmse}}",
     "cancelled": "Оптимізацію зупинено — параметри контролера не змінено.",
     "skipped": "Пропущено рядків з некоректними значеннями: {{n}}",
     "rmseTrain": "RMSE (навчальна вибірка)",
@@ -185,8 +185,6 @@
       "timeSec": "навчання ≈ {{n}} с",
       "timeMin": "навчання ≈ {{n}} хв"
     },
-    "stallWarmup": "критерій зупинки діє після {{n}} поколінь",
-    "stallChange": "середня зміна f(x) {{change}} · зупинка при ≤ {{tol}}",
     "generations": "Поколінь",
     "stoppedBy": {
       "tolerance": "крива вирівнялась",
@@ -194,8 +192,8 @@
     },
     "trainedNote": "Контролер працює з оптимізованими параметрами",
     "chartEmpty": "Графік збіжності з’явиться під час навчання.",
-    "legendBest": "найкраще f(x)",
-    "legendMean": "середнє по популяції f(x)",
+    "legendBest": "найкраще RMSE",
+    "legendMean": "середнє RMSE по популяції",
     "ruleN": "Правило {{n}}",
     "report": {
       "sheetSummary": "Підсумок",
@@ -224,13 +222,16 @@
       "rmseTestAfter": "RMSE тестова, після",
       "changedParams": "Змінено параметрів ФН",
       "changedRules": "Змінено правил",
-      "generation": "Покоління"
+      "generation": "Покоління",
+      "objectiveBest": "J (цільова функція)"
     },
     "changesCount": "{{params}} параметрів ФН, {{rules}} правил",
     "curveBefore": "до навчання",
     "curveAfter": "після",
     "centre": "центр b",
     "width": "ширина σ",
-    "rulesChanged": "Змінені правила"
+    "rulesChanged": "Змінені правила",
+    "stopHint": "Зупиниться само, коли крива вирівняється.",
+    "axisGenerations": "покоління"
   }
 }

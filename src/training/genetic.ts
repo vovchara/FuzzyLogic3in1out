@@ -60,8 +60,16 @@ export const DEFAULT_GENETIC_OPTIONS: GeneticOptions = {
 /** Objective values of one generation; lower is better. */
 export interface GenerationStat {
   readonly generation: number;
+  /** Objective J of the best chromosome and the population mean; what the GA minimises. */
   readonly best: number;
   readonly mean: number;
+  /**
+   * The same two as plain RMSE in output units, for display: J is RMSE scaled
+   * to the output domain plus a rule term, which reads unlike the RMSE the
+   * card prints next to the chart.
+   */
+  readonly bestRmse: number;
+  readonly meanRmse: number;
 }
 
 export interface GeneticResult {
@@ -74,6 +82,8 @@ interface Individual {
   readonly mf: number[];
   readonly rules: number[];
   objective: number;
+  /** Training RMSE in output units; set together with `objective`. */
+  error?: number;
 }
 
 interface Layout {
@@ -206,12 +216,18 @@ export function rmse(system: FuzzySystem, samples: readonly Sample[]): number {
  * Two criteria folded into one: RMSE normalised by the output domain, plus a
  * penalty per active rule. Minimised; the GA's fitness is 1 / (1 + objective).
  */
-function objective(system: FuzzySystem, layout: Layout, ind: Individual, samples: readonly Sample[], opts: GeneticOptions): number {
+function objective(
+  system: FuzzySystem,
+  layout: Layout,
+  ind: Individual,
+  samples: readonly Sample[],
+  opts: GeneticOptions,
+): { objective: number; error: number } {
   const active = ind.rules.filter((x) => x > 0).length;
-  if (active === 0) return Infinity;
+  if (active === 0) return { objective: Infinity, error: Infinity };
   const [min, max] = system.output.range;
-  const error = rmse(decode(system, layout, ind), samples) / (max - min);
-  return error + opts.rulePenalty * (active / ind.rules.length);
+  const error = rmse(decode(system, layout, ind), samples);
+  return { objective: error / (max - min) + opts.rulePenalty * (active / ind.rules.length), error };
 }
 
 function randomIndividual(layout: Layout, rand: () => number): Individual {
@@ -295,7 +311,10 @@ export function optimizeGenetic(
   const rate = opts.mutationRate ?? 1 / (layout.lo.length + layout.expert.rules.length);
 
   const score = (ind: Individual) => {
-    if (ind.objective === Infinity) ind.objective = objective(system, layout, ind, samples, opts);
+    if (ind.objective !== Infinity) return;
+    const r = objective(system, layout, ind, samples, opts);
+    ind.objective = r.objective;
+    ind.error = r.error;
   };
 
   // The expert controller joins the initial population, so the result is
@@ -309,8 +328,15 @@ export function optimizeGenetic(
   const record = (generation: number) => {
     pop.sort((a, b) => a.objective - b.objective);
     const finite = pop.filter((x) => Number.isFinite(x.objective));
-    const mean = finite.reduce((sum, x) => sum + x.objective, 0) / Math.max(1, finite.length);
-    const stat = { generation, best: pop[0].objective, mean };
+    const avg = (pick: (x: Individual) => number) =>
+      finite.reduce((sum, x) => sum + pick(x), 0) / Math.max(1, finite.length);
+    const stat = {
+      generation,
+      best: pop[0].objective,
+      mean: avg((x) => x.objective),
+      bestRmse: pop[0].error ?? NaN,
+      meanRmse: avg((x) => x.error ?? NaN),
+    };
     history.push(stat);
     onGeneration?.(stat);
   };

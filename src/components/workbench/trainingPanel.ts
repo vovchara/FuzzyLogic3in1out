@@ -3,12 +3,12 @@ import type { FuzzySystem } from "../../fuzzy/types";
 import { t } from "../../i18n";
 import { trainInWorker, type TrainingRun } from "../../training/client";
 import { hasTemplate, parseDataset, TEMPLATE_SIZES, templateRows, type DatasetError } from "../../training/dataset";
-import { DEFAULT_GENETIC_OPTIONS, stallChange, type GenerationStat } from "../../training/genetic";
+import { DEFAULT_GENETIC_OPTIONS, type GenerationStat } from "../../training/genetic";
 import type { TrainingRecord } from "../../training/record";
 import { reportSheets } from "../../training/report";
 import { downloadXlsx, readTable } from "../../utils/excel";
 import { readString, writeString } from "../../utils/storage";
-import { drawConvergence } from "../chart/convergence";
+import { drawConvergence, type ConvergencePoint } from "../chart/convergence";
 import { chooseDialog, confirmDialog } from "../shell/confirmDialog";
 import type { AppShellCtx, Unmount } from "../context";
 import { DOWNLOAD_ICON, ROLLBACK_ICON } from "../icons";
@@ -95,7 +95,7 @@ export function mountTrainingPanel(
             <div class="h-1.5 rounded-full bg-brand-100 overflow-hidden">
               <div class="h-full w-full bg-brand-600 animate-pulse"></div>
             </div>
-            <p class="text-[11px] text-graphite-500 font-mono tabular-nums" data-stall-label></p>
+            <p class="text-[11px] text-graphite-500" data-i18n="training.stopHint"></p>
           </div>
 
           <p class="mt-3 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5"
@@ -136,8 +136,8 @@ export function mountTrainingPanel(
   const chartEmpty = q(container, "[data-chart-empty]");
   const chart = q<HTMLCanvasElement>(container, "[data-chart]");
   const progressLabel = q(container, "[data-progress-label]");
-  const stallLabel = q(container, "[data-stall-label]");
-  const { stallGenerations, functionTolerance } = DEFAULT_GENETIC_OPTIONS;
+  const { stallGenerations } = DEFAULT_GENETIC_OPTIONS;
+  const outputSpan = expert.output.range[1] - expert.output.range[0];
 
   let run: TrainingRun | null = null;
   let history: GenerationStat[] = record ? [...record.history] : [];
@@ -152,7 +152,12 @@ export function mountTrainingPanel(
     chartEmpty.hidden = history.length > 0;
     // While running the axis grows with the run; it starts at the stall
     // window so the first generations are not stretched across the chart.
-    if (history.length > 0) drawConvergence(chart, history, Math.max(stallGenerations, history.length - 1));
+    if (history.length > 0) {
+      drawConvergence(chart, history.map((g) => asRmse(g, outputSpan)), Math.max(stallGenerations, history.length - 1), {
+        y: "RMSE",
+        x: t("training.axisGenerations"),
+      });
+    }
   }
 
   container.querySelector("[data-template]")?.addEventListener("click", async () => {
@@ -204,15 +209,8 @@ export function mountTrainingPanel(
       history.push(stat);
       progressLabel.textContent = t("training.progress", {
         gen: stat.generation,
-        best: stat.best.toFixed(4),
+        rmse: asRmse(stat, outputSpan).best.toFixed(2),
       });
-      const change = stallChange(history, stallGenerations);
-      stallLabel.textContent = change === null
-        ? t("training.stallWarmup", { n: stallGenerations })
-        : t("training.stallChange", {
-            change: change.toExponential(1),
-            tol: functionTolerance.toExponential(0),
-          });
       redrawChart();
     };
 
@@ -255,6 +253,20 @@ export function mountTrainingPanel(
   applyI18n(container, t);
 
   return () => run?.cancel();
+}
+
+/**
+ * A generation as the chart shows it: training RMSE in output units, the same
+ * number the card prints. Records stored before RMSE was kept per generation
+ * fall back to the objective scaled back up, which differs only by the small
+ * rule-count term.
+ */
+function asRmse(g: GenerationStat, span: number): ConvergencePoint {
+  return {
+    generation: g.generation,
+    best: g.bestRmse ?? g.best * span,
+    mean: g.meanRmse ?? g.mean * span,
+  };
 }
 
 function datasetErrorText(error: DatasetError): string {

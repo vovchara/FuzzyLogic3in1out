@@ -152,7 +152,7 @@
     "upload": "Optymalizuj na zbiorze danych…",
     "template": "Pobierz testowy zbiór danych",
     "cancel": "Zatrzymaj",
-    "progress": "Pokolenie {{gen}} · najlepsze f(x) = {{best}}",
+    "progress": "Pokolenie {{gen}} · RMSE {{rmse}}",
     "cancelled": "Optymalizację zatrzymano — parametry sterownika bez zmian.",
     "skipped": "Pominięto wierszy z błędnymi wartościami: {{n}}",
     "rmseTrain": "RMSE (zbiór uczący)",
@@ -185,8 +185,6 @@
       "timeSec": "uczenie ≈ {{n}} s",
       "timeMin": "uczenie ≈ {{n}} min"
     },
-    "stallWarmup": "kryterium zatrzymania działa po {{n}} pokoleniach",
-    "stallChange": "średnia zmiana f(x) {{change}} · stop przy ≤ {{tol}}",
     "generations": "Pokolenia",
     "stoppedBy": {
       "tolerance": "krzywa się wypłaszczyła",
@@ -194,8 +192,8 @@
     },
     "trainedNote": "Sterownik działa na zoptymalizowanych parametrach",
     "chartEmpty": "Wykres zbieżności pojawi się podczas uczenia.",
-    "legendBest": "najlepsze f(x)",
-    "legendMean": "średnie w populacji f(x)",
+    "legendBest": "najlepsze RMSE",
+    "legendMean": "średnie RMSE w populacji",
     "ruleN": "Reguła {{n}}",
     "report": {
       "sheetSummary": "Podsumowanie",
@@ -224,13 +222,16 @@
       "rmseTestAfter": "RMSE testowy, po",
       "changedParams": "Zmienione parametry FP",
       "changedRules": "Zmienione reguły",
-      "generation": "Pokolenie"
+      "generation": "Pokolenie",
+      "objectiveBest": "J (funkcja celu)"
     },
     "changesCount": "{{params}} parametrów FP, {{rules}} reguł",
     "curveBefore": "przed uczeniem",
     "curveAfter": "po",
     "centre": "środek b",
     "width": "szerokość σ",
-    "rulesChanged": "Zmienione reguły"
+    "rulesChanged": "Zmienione reguły",
+    "stopHint": "Zatrzyma się samo, gdy krzywa się wypłaszczy.",
+    "axisGenerations": "pokolenie"
   }
 }

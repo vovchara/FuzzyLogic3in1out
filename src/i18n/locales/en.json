@@ -152,7 +152,7 @@
     "upload": "Optimise on a dataset…",
     "template": "Get test dataset",
     "cancel": "Stop",
-    "progress": "Generation {{gen}} · best f(x) = {{best}}",
+    "progress": "Generation {{gen}} · RMSE {{rmse}}",
     "cancelled": "Optimisation stopped — the controller is unchanged.",
     "skipped": "Rows skipped for invalid values: {{n}}",
     "rmseTrain": "RMSE (training set)",
@@ -185,8 +185,6 @@
       "timeSec": "training ≈ {{n}} s",
       "timeMin": "training ≈ {{n}} min"
     },
-    "stallWarmup": "the stopping test starts after {{n}} generations",
-    "stallChange": "average f(x) change {{change}} · stops at ≤ {{tol}}",
     "generations": "Generations",
     "stoppedBy": {
       "tolerance": "curve flattened",
@@ -194,8 +192,8 @@
     },
     "trainedNote": "The controller runs on optimised parameters",
     "chartEmpty": "The convergence chart appears during training.",
-    "legendBest": "best f(x)",
-    "legendMean": "population mean f(x)",
+    "legendBest": "best RMSE",
+    "legendMean": "population mean RMSE",
     "ruleN": "Rule {{n}}",
     "report": {
       "sheetSummary": "Summary",
@@ -224,13 +222,16 @@
       "rmseTestAfter": "RMSE test, after",
       "changedParams": "MF parameters changed",
       "changedRules": "Rules changed",
-      "generation": "Generation"
+      "generation": "Generation",
+      "objectiveBest": "J (objective)"
     },
     "changesCount": "{{params}} MF parameters, {{rules}} rules",
     "curveBefore": "before training",
     "curveAfter": "after",
     "centre": "centre b",
     "width": "width σ",
-    "rulesChanged": "Changed rules"
+    "rulesChanged": "Changed rules",
+    "stopHint": "Stops by itself once the curve flattens.",
+    "axisGenerations": "generation"
   }
 }

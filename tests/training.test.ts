@@ -115,7 +115,7 @@ describe("genetic optimisation", () => {
   });
 
   test("stall measure is the average relative change of best over the window", () => {
-    const h = (bests: number[]): GenerationStat[] => bests.map((best, generation) => ({ generation, best, mean: best }));
+    const h = (bests: number[]): GenerationStat[] => bests.map((best, generation) => ({ generation, best, mean: best, bestRmse: best, meanRmse: best }));
     expect(stallChange(h([0.5, 0.4, 0.3]), 3)).toBeNull();
     expect(stallChange(h([0.5, 0.4, 0.3, 0.2]), 3)).toBeCloseTo(0.1);
     // Relative to |f| once it exceeds 1.

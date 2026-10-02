@@ -81,8 +81,15 @@ export function reportSheets(expert: FuzzySystem, record: TrainingRecord, t: Tra
     [k("changedRules"), diff.rules.length],
   ];
 
-  const generations: (string | number)[][] = [[k("generation"), t("training.legendBest"), t("training.legendMean")]];
-  for (const g of record.history) generations.push([g.generation, r4(g.best), r4(g.mean)]);
+  // RMSE is what the card's chart shows; J is what the GA minimised, kept for
+  // anyone matching the run against the objective in section 4.3.3.3.
+  const generations: (string | number)[][] = [
+    [k("generation"), t("training.legendBest"), t("training.legendMean"), k("objectiveBest")],
+  ];
+  const span = out.range[1] - out.range[0];
+  for (const g of record.history) {
+    generations.push([g.generation, r4(g.bestRmse ?? g.best * span), r4(g.meanRmse ?? g.mean * span), r4(g.best)]);
+  }
 
   return [
     { name: k("sheetSummary"), rows: summary },

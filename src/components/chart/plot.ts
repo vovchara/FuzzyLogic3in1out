@@ -98,12 +98,19 @@ export function niceTicks(range: readonly [number, number], target = 5): number[
 }
 
 /**
- * Faint reference grid across the plot area. Vertical lines go at `xTicks`
+ * Faint reference grid across the plot area. Lines go at `xTicks` / `yTicks`
  * when given (domain values), so they meet the axis labels; otherwise the
- * width is split into `columns`. A line on the y axis is skipped: it would
- * only blend with it. The right edge keeps one — nothing else marks it.
+ * plot is split into `columns` and `rows`. A line on the y axis is skipped:
+ * it would only blend with it. The right edge keeps one — nothing else
+ * marks it.
  */
-export function drawGrid(plot: Plot, columns = 4, rows = 4, xTicks?: readonly number[]): void {
+export function drawGrid(
+  plot: Plot,
+  columns = 4,
+  rows = 4,
+  xTicks?: readonly number[],
+  yTicks?: readonly number[],
+): void {
   const { ctx } = plot;
   ctx.strokeStyle = CHART.grid;
   ctx.lineWidth = 1;
@@ -116,8 +123,10 @@ export function drawGrid(plot: Plot, columns = 4, rows = 4, xTicks?: readonly nu
     ctx.moveTo(x, plot.top);
     ctx.lineTo(x, plot.bottom);
   }
-  for (let i = 0; i <= rows; i++) {
-    const y = plot.top + (plot.plotHeight * i) / rows;
+  const ys = yTicks
+    ? yTicks.map((v) => plot.y(v))
+    : Array.from({ length: rows + 1 }, (_, i) => plot.top + (plot.plotHeight * i) / rows);
+  for (const y of ys) {
     ctx.moveTo(plot.left, y);
     ctx.lineTo(plot.right, y);
   }
