@@ -36,7 +36,6 @@ export const routingSystem: FuzzySystem = {
       nameKey: v("residualEnergy"),
       range: [0, 1],
       defaultValue: 0.5,
-      keyPoints: [0, 0.65, 1],
       terms: [
         { id: "Low",    nameKey: "terms.low",    color: COLOR.low,    shape: { kind: "gaussian", bias: 0,    sigma: 0.25 } },
         { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "gaussian", bias: 0.65, sigma: 0.15 } },
@@ -48,7 +47,6 @@ export const routingSystem: FuzzySystem = {
       nameKey: v("distance"),
       range: [0, 100],
       defaultValue: 50,
-      keyPoints: [10, 40, 100],
       terms: [
         { id: "Low",    nameKey: "terms.low",    color: COLOR.low,    shape: { kind: "gaussian", bias: 10,  sigma: 15 } },
         { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "gaussian", bias: 40,  sigma: 15 } },
@@ -60,7 +58,6 @@ export const routingSystem: FuzzySystem = {
       nameKey: v("linkQuality"),
       range: [0, 1],
       defaultValue: 0.5,
-      keyPoints: [0.3, 0.75, 1],
       terms: [
         { id: "Low",    nameKey: "terms.low",    color: COLOR.low,    shape: { kind: "gaussian", bias: 0.3,  sigma: 0.25 } },
         { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "gaussian", bias: 0.75, sigma: 0.1 } },
@@ -73,7 +70,6 @@ export const routingSystem: FuzzySystem = {
     nameKey: v("routeStatus"),
     range: [0, 100],
     defaultValue: 50,
-    keyPoints: [0, 30, 70, 100],
     terms: [
       { id: "VeryLow",  nameKey: "terms.veryLowM",  color: COLOR.low,      shape: { kind: "gaussian", bias: 0,   sigma: 10 } },
       { id: "Low",      nameKey: "terms.lowM",      color: COLOR.medium,   shape: { kind: "gaussian", bias: 30,  sigma: 15 } },

@@ -80,22 +80,53 @@ export function preparePlot(
 }
 
 /**
- * Faint reference grid across the plot area. The first vertical line is
- * skipped: it would sit exactly under the y axis and only blend with it. The
- * last one is not — nothing else marks the right edge of the plot.
+ * Evenly spaced axis ticks on a round step (1, 2, 2.5 or 5 × 10ⁿ), about
+ * `target` intervals across the domain — what MATLAB's axes do. The domain
+ * ends are not added: a domain like [0, 45] ends between two ticks.
  */
-export function drawGrid(plot: Plot, columns = 4, rows = 4): void {
+export function niceTicks(range: readonly [number, number], target = 5): number[] {
+  const [min, max] = range;
+  const raw = (max - min) / target;
+  if (!(raw > 0)) return [min];
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  const step = [1, 2, 2.5, 5, 10].map((m) => m * mag).find((x) => x >= raw - 1e-12) ?? 10 * mag;
+  const ticks: number[] = [];
+  for (let v = Math.ceil(min / step - 1e-9) * step; v <= max + 1e-9; v += step) {
+    ticks.push(Number(v.toFixed(10)));
+  }
+  return ticks;
+}
+
+/**
+ * Faint reference grid across the plot area. Lines go at `xTicks` / `yTicks`
+ * when given (domain values), so they meet the axis labels; otherwise the
+ * plot is split into `columns` and `rows`. A line on the y axis is skipped:
+ * it would only blend with it. The right edge keeps one — nothing else
+ * marks it.
+ */
+export function drawGrid(
+  plot: Plot,
+  columns = 4,
+  rows = 4,
+  xTicks?: readonly number[],
+  yTicks?: readonly number[],
+): void {
   const { ctx } = plot;
   ctx.strokeStyle = CHART.grid;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  for (let i = 1; i <= columns; i++) {
-    const x = plot.left + (plot.plotWidth * i) / columns;
+  const xs = xTicks
+    ? [...xTicks.map((v) => plot.x(v)), plot.right]
+    : Array.from({ length: columns }, (_, i) => plot.left + (plot.plotWidth * (i + 1)) / columns);
+  for (const x of xs) {
+    if (x <= plot.left + 0.5) continue;
     ctx.moveTo(x, plot.top);
     ctx.lineTo(x, plot.bottom);
   }
-  for (let i = 0; i <= rows; i++) {
-    const y = plot.top + (plot.plotHeight * i) / rows;
+  const ys = yTicks
+    ? yTicks.map((v) => plot.y(v))
+    : Array.from({ length: rows + 1 }, (_, i) => plot.top + (plot.plotHeight * i) / rows);
+  for (const y of ys) {
     ctx.moveTo(plot.left, y);
     ctx.lineTo(plot.right, y);
   }

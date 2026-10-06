@@ -1,17 +1,18 @@
 import { applyI18n, q, qa } from "../../dom";
 import { curvePeak, FIRE_EPS, ruleStrength, strongestTerm } from "../../fuzzy/engine";
-import { systems as allSystems } from "../../fuzzy/systems";
 import type { FuzzySystem } from "../../fuzzy/types";
 import { t } from "../../i18n";
 import { formatDegree } from "../../utils/format";
 import { readJson, writeJson } from "../../utils/storage";
 import { mountAggregatedPanel, mountCentroidPanel, supportsAggregatedSet } from "../steps/aggregatedPanel";
 import type { AppShellCtx, InferenceStep, Unmount } from "../context";
+import { canTrain } from "../../training/config";
 import { mountControlRail } from "./controlRail";
 import { mountDefuzzPanel } from "../steps/defuzzPanel";
 import { mountFlowStrip } from "./flowStrip";
 import { mountGraphsPanel } from "../steps/graphsPanel";
 import { mountRulesPanel } from "../steps/rulesPanel";
+import { mountTrainingPanel } from "./trainingPanel";
 
 const OPEN_STATE_KEY = "fuzzy.openSections";
 
@@ -127,6 +128,7 @@ export function mountWorkbench(container: HTMLElement, ctx: AppShellCtx): Unmoun
       : "";
 
     const steps = stepsFor(system);
+    const trainable = canTrain(ctx.getExpertSystem(system.id));
 
     container.innerHTML = `
       ${draftBanner}
@@ -136,6 +138,10 @@ export function mountWorkbench(container: HTMLElement, ctx: AppShellCtx): Unmoun
         <div id="controlRail"></div>
 
         <div class="min-w-0 mt-4 lg:mt-0">
+          <!-- Optimisation is a separate job from reading one inference, so it
+               sits above the steps rather than in the rail, which then stays
+               the same for every controller. -->
+          ${trainable ? `<div id="trainingPanel" class="mb-3"></div>` : ""}
           <div id="flowStrip"></div>
           <div class="grid gap-3 mt-3">
             ${steps.map((step, idx) => sectionHtml(step, idx, openState)).join("")}
@@ -145,6 +151,8 @@ export function mountWorkbench(container: HTMLElement, ctx: AppShellCtx): Unmoun
     `;
 
     childUnmounts.push(mountControlRail(q(container, "#controlRail"), ctx, system));
+
+    if (trainable) childUnmounts.push(mountTrainingPanel(q(container, "#trainingPanel"), ctx, system));
 
     const strip = mountFlowStrip(q(container, "#flowStrip"), ctx, system, steps, revealStep);
     childUnmounts.push(strip.unmount);
@@ -194,12 +202,16 @@ export function mountWorkbench(container: HTMLElement, ctx: AppShellCtx): Unmoun
   }
 
   let currentId = ctx.store.getState().activeSystemId;
-  render(findSystem(currentId));
+  let revision = ctx.store.getState().systemRevision;
+  render(ctx.getSystem(currentId));
 
+  // A new revision means the controller's parameters changed under the same
+  // id — after training or its reset — and every chart has to be rebuilt.
   const unsub = ctx.store.subscribe((s) => {
-    if (s.activeSystemId !== currentId) {
+    if (s.activeSystemId !== currentId || s.systemRevision !== revision) {
       currentId = s.activeSystemId;
-      render(findSystem(currentId));
+      revision = s.systemRevision;
+      render(ctx.getSystem(currentId));
     }
   });
 
@@ -241,10 +253,4 @@ function readOpenState(): Record<string, boolean> {
 
 function writeOpenState(state: Readonly<Record<string, boolean>>): void {
   writeJson(OPEN_STATE_KEY, state);
-}
-
-function findSystem(id: string): FuzzySystem {
-  const s = allSystems.find((x) => x.id === id);
-  if (!s) throw new Error(`Unknown system: ${id}`);
-  return s;
 }

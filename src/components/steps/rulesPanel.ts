@@ -9,6 +9,10 @@ export function mountRulesPanel(
   ctx: AppShellCtx,
   system: FuzzySystem,
 ): Unmount {
+  // Numbered by the expert rule base, not by position: once the GA switches a
+  // rule off, positions shift and would no longer match "r11 → off".
+  const expertRules = ctx.getExpertSystem(system.id).rules;
+  const ruleNumber = (id: string) => expertRules.findIndex((r) => r.id === id) + 1;
   const varById = new Map<string, FuzzyVariable>();
   for (const v of system.inputs) varById.set(v.id, v);
   varById.set(system.output.id, system.output);
@@ -31,7 +35,7 @@ export function mountRulesPanel(
           </tr>
         </thead>
         <tbody>
-          ${system.rules.map((r, idx) => rowHtml(varById, r, idx)).join("")}
+          ${system.rules.map((r) => rowHtml(varById, r, ruleNumber(r.id))).join("")}
         </tbody>
       </table>
     </div>
@@ -115,7 +119,7 @@ function tintFor(truth: number): string {
 function rowHtml(
   varById: ReadonlyMap<string, FuzzyVariable>,
   rule: FuzzySystem["rules"][number],
-  idx: number,
+  number: number,
 ): string {
   const conditions = Object.entries(rule.if)
     .map(([vid, tid]) => renderRulePart(varById, vid, tid))
@@ -125,7 +129,7 @@ function rowHtml(
     .join(" ");
   return `
     <tr data-rule="${rule.id}" class="border-t border-graphite-100 transition-colors">
-      <td class="px-2 py-1.5 text-graphite-400 font-mono tabular-nums">${idx + 1}</td>
+      <td class="px-2 py-1.5 text-graphite-400 font-mono tabular-nums">${number}</td>
       <td class="px-2 py-1.5">${conditions}</td>
       <td class="px-2 py-1.5">
         ${conclusions}

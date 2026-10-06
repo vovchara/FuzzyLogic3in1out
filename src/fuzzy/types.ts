@@ -20,7 +20,6 @@ export interface FuzzyVariable {
   readonly unitKey?: string;
   readonly range: readonly [number, number];
   readonly defaultValue: number;
-  readonly keyPoints?: readonly number[];
   readonly terms: readonly FuzzyTerm[];
 }
 

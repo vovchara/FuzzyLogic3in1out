@@ -1,10 +1,10 @@
 import katex from "katex";
 import { applyI18n, q, qa } from "../../dom";
-import { systems as allSystems } from "../../fuzzy/systems";
 import type { FuzzySystem } from "../../fuzzy/types";
 import { t } from "../../i18n";
 import { ruleToLatex, termToLatex, variableDomainLatex } from "../../utils/formulas";
 import type { AppShellCtx, Unmount } from "../context";
+import { DOWNLOAD_ICON } from "../icons";
 
 export function mountFormulasModal(container: HTMLElement, ctx: AppShellCtx): Unmount {
   container.innerHTML = `
@@ -15,8 +15,9 @@ export function mountFormulasModal(container: HTMLElement, ctx: AppShellCtx): Un
           <h2 class="text-lg font-semibold" data-i18n="formulas.title"></h2>
           <div class="flex gap-2">
             <button type="button" data-download
-              class="btn-primary"
-              data-i18n="actions.downloadPdf"></button>
+              class="btn-primary inline-flex items-center gap-1.5">
+              ${DOWNLOAD_ICON}<span data-i18n="actions.downloadPdf"></span>
+            </button>
             <button type="button" data-close
               class="btn"
               data-i18n="actions.close"></button>
@@ -43,26 +44,31 @@ export function mountFormulasModal(container: HTMLElement, ctx: AppShellCtx): Un
   });
 
   function currentSystem(): FuzzySystem {
-    const id = ctx.store.getState().activeSystemId;
-    return allSystems.find((s) => s.id === id) ?? allSystems[0];
+    return ctx.getSystem(ctx.store.getState().activeSystemId);
   }
 
   let lastOpen = false;
   let lastRenderedId: string | null = null;
   let lastRenderedLang: string | null = null;
+  let lastRenderedRevision = -1;
 
   function sync(): void {
-    const { formulasOpen, activeSystemId, language } = ctx.store.getState();
+    const { formulasOpen, activeSystemId, language, systemRevision } = ctx.store.getState();
     if (formulasOpen !== lastOpen) {
       lastOpen = formulasOpen;
       modal.classList.toggle("hidden", !formulasOpen);
     }
     if (!formulasOpen) return;
-    if (activeSystemId !== lastRenderedId || language !== lastRenderedLang) {
+    if (
+      activeSystemId !== lastRenderedId
+      || language !== lastRenderedLang
+      || systemRevision !== lastRenderedRevision
+    ) {
       lastRenderedId = activeSystemId;
       lastRenderedLang = language;
+      lastRenderedRevision = systemRevision;
       const system = currentSystem();
-      body.innerHTML = buildBody(system);
+      body.innerHTML = buildBody(system, ctx.getExpertSystem(system.id));
       applyI18n(body, t);
       renderKatex(body);
     }
@@ -72,7 +78,7 @@ export function mountFormulasModal(container: HTMLElement, ctx: AppShellCtx): Un
   return ctx.store.subscribe(sync);
 }
 
-function buildBody(system: FuzzySystem): string {
+function buildBody(system: FuzzySystem, expert: FuzzySystem): string {
   const allVars = [...system.inputs, system.output];
   const variables = allVars
     .map(
@@ -97,11 +103,13 @@ function buildBody(system: FuzzySystem): string {
     )
     .join("");
 
+  // Numbered by the expert rule base, so a rule the GA switched off leaves a
+  // gap instead of renumbering the rest.
   const rules = system.rules
     .map(
-      (r, i) => `
+      (r) => `
       <div class="flex gap-3 items-start py-1.5 border-b border-graphite-100 last:border-0">
-        <span class="text-xs font-mono text-graphite-400 tabular-nums mt-1 w-6">${i + 1}</span>
+        <span class="text-xs font-mono text-graphite-400 tabular-nums mt-1 w-6">${expert.rules.findIndex((x) => x.id === r.id) + 1}</span>
         <div data-math class="flex-1">${ruleToLatex(r, system, { t })}</div>
       </div>`,
     )

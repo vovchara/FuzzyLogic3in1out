@@ -55,7 +55,6 @@ export const commCtrlSystem: FuzzySystem = {
       nameKey: v("residualEnergy"),
       range: [0, 1],
       defaultValue: 0.5,
-      keyPoints: [0.2, 0.4, 0.6, 0.8],
       terms: [
         { id: "Low",    nameKey: "terms.small",  color: COLOR.small,  shape: { kind: "trapezoid", points: [0, 0, 0.2, 0.4] } },
         { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "trapezoid", points: [0.2, 0.4, 0.6, 0.8] } },
@@ -67,7 +66,6 @@ export const commCtrlSystem: FuzzySystem = {
       nameKey: v("packetDeliveryRatio"),
       range: [0, 1],
       defaultValue: 0.5,
-      keyPoints: [0.3, 0.5, 0.7, 0.9],
       terms: [
         { id: "Low",       nameKey: "terms.smallM",       color: COLOR.small,           shape: { kind: "trapezoid", points: [0, 0, 0.3, 0.5] } },
         { id: "Medium",    nameKey: "terms.mediumM",      color: COLOR.medium,          shape: { kind: "trapezoid", points: [0.3, 0.5, 0.7, 0.9] } },
@@ -79,7 +77,6 @@ export const commCtrlSystem: FuzzySystem = {
       nameKey: v("transmissionDelay"),
       range: [0, 50],
       defaultValue: 25,
-      keyPoints: [10, 15, 20, 25, 35, 45],
       terms: [
         { id: "Low",    nameKey: "terms.small",  color: COLOR.small,  shape: { kind: "trapezoid", points: [0, 0, 10, 20] } },
         { id: "Medium", nameKey: "terms.medium", color: COLOR.medium, shape: { kind: "trapezoid", points: [15, 25, 35, 45] } },
@@ -92,7 +89,6 @@ export const commCtrlSystem: FuzzySystem = {
     nameKey: v("suitability"),
     range: [0, 100],
     defaultValue: 0,
-    keyPoints: [0, 25, 50, 75, 100],
     terms: [
       { id: "VerySmall", nameKey: "terms.verySmallM",   color: COLOR.outputVeryLow,   shape: { kind: "triangle", points: [0, 0, 25] } },
       { id: "Small",     nameKey: "terms.smallM",       color: COLOR.outputLow,       shape: { kind: "triangle", points: [0, 25, 50] } },

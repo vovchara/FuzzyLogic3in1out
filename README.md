@@ -30,6 +30,12 @@ Also: a "Show formulas" modal rendering the membership functions and rules in La
 
 Language can be switched between Ukrainian (default), English and Polish; the choice persists in `localStorage`, as do the inputs, the active controller and which sections are open.
 
+### Genetic optimisation (routing)
+
+The routing controller can be tuned by a genetic algorithm on a dataset, following section 4.3.3 of the dissertation. A card under the result takes an `.xlsx` or `.csv` whose first row names the columns `RE`, `Dist`, `LQ`, `RS`; **Get test dataset** offers a synthetic one of 40, 120 or 500 rows (about 5 s, 30 s or 2 min of training). The GA runs in a Web Worker: a hybrid chromosome (incrementally coded gaussian centres and widths + one gene per rule consequent, 0 switching a rule off), tournament selection, arithmetic / two-point crossover, gaussian mutation with a narrowing spread, elitism, and MATLAB's `ga` stall test for stopping: the run ends once the average relative change of the best objective over the last 50 generations drops to 1e-5 (MATLAB's default is 1e-6, too slow for a browser), with a cap of 300 generations. The objective is RMSE normalised by the output domain plus a small penalty per active rule; 20% of the rows are held out as a test set. The optimised controller replaces the expert one on every chart, survives a reload, and **Restore expert parameters** brings the original back. **Export report (.xlsx)** exports the summary, every parameter before/after, the rule base before/after and the per-generation objective.
+
+The template dataset is made up: it is produced by the expert controller with a few centres moved, so training visibly pulls them back. It is a placeholder until the real dataset arrives.
+
 ### Extending with another fuzzy system
 
 Each system is a single data file in `src/fuzzy/systems/`. Add a file that exports a `FuzzySystem` (see `src/fuzzy/types.ts`) and register it in `src/fuzzy/systems/index.ts`. The UI auto-renders a new tab.
@@ -55,6 +61,10 @@ npm run typecheck    # tsc --noEmit
 ```
 src/
   fuzzy/        engine + types + system definitions (data-driven; imports no UI)
+  training/     genetic optimisation, separate from the controller: takes a
+                FuzzySystem + dataset, returns an optimised FuzzySystem and a
+                report (genetic, dataset, train, record, report, worker, client);
+                config.ts switches the optimisation card on per controller
   i18n/         i18next setup + ua/en/pl locale JSON
   components/
     context.ts    AppShellCtx, Unmount, InferenceStep — the only contract
@@ -105,6 +115,12 @@ inference step is one entry in `stepsFor()` in `workbench.ts` plus its mount fun
 - Модальне вікно «Показати формули» з LaTeX-рендерингом (KaTeX) та експортом у PDF.
 - Кнопка «Експортувати PDF» зберігає односторінковий звіт обчислення.
 - Перемикання мови: українська (типова) / English / Polski. У `localStorage` зберігаються вибір мови, значення входів, активний контролер і те, які секції розгорнуті.
+
+### Генетична оптимізація (маршрутизація)
+
+Контролер маршрутизації можна налаштувати генетичним алгоритмом за датасетом, як у підрозділі 4.3.3 дисертації. Картка під результатом приймає `.xlsx` або `.csv`, у першому рядку якого стовпці `RE`, `Dist`, `LQ`, `RS`; кнопка **Отримати тестовий датасет** пропонує синтетичний датасет на 40, 120 або 500 рядків (навчання приблизно 5 с, 30 с або 2 хв). ГА працює у Web Worker: гібридна хромосома (інкрементно закодовані центри й ширини гаусових ФН + ген на консеквент кожного правила, 0 вимикає правило), турнірна селекція, арифметичне / двоточкове схрещування, гаусівська мутація зі звуженням, елітизм і зупинка за критерієм `ga` з MATLAB: навчання завершується, коли середня відносна зміна найкращого значення цільової функції за останні 50 поколінь падає до 1e-5 (у MATLAB за замовчуванням 1e-6 — для браузера задовго), не більше 300 поколінь. Цільова функція — RMSE, нормований на діапазон виходу, плюс невеликий штраф за кожне активне правило; 20% рядків відкладаються як тестова вибірка. Оптимізований контролер замінює експертний на всіх графіках, зберігається після перезавантаження, а **Повернути експертні параметри** відновлює початковий. **Експортувати звіт (.xlsx)** експортує підсумок, усі параметри до/після, базу правил до/після і значення цільової функції по поколіннях.
+
+Шаблонний датасет вигаданий: його згенеровано експертним контролером із кількома зсунутими центрами, тож після навчання видно, як параметри до них підтягуються. Це заглушка до появи справжнього датасету.
 
 ### Як додати ще одну нечітку систему
 
