@@ -82,7 +82,11 @@ export function mountDefuzzPanel(
     }
 
     const ms = evaluation?.memberships[output.id];
-    const strongest = ms && fired ? strongestTerm(ms) : null;
+    // Under the weighted average a term's say in the result is its share of
+    // the total strength, however small the strengths themselves are.
+    const strongest = ms && fired
+      ? strongestTerm(system.defuzz === "weighted-average" ? shares(ms) : ms)
+      : null;
 
     drawMembershipGraph({
       variable: output,
@@ -109,3 +113,9 @@ export function mountDefuzzPanel(
   });
 }
 
+function shares(ms: Readonly<Record<string, number>>): Record<string, number> {
+  const total = Object.values(ms).reduce((a, b) => a + b, 0);
+  const out: Record<string, number> = {};
+  for (const [id, x] of Object.entries(ms)) out[id] = total > 0 ? x / total : 0;
+  return out;
+}

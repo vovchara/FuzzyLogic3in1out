@@ -1,6 +1,6 @@
 import type { FuzzySystem } from "../fuzzy/types";
-import type { GenerationStat, Sample } from "./genetic";
-import type { TrainingRecord } from "./record";
+import type { Sample } from "./genetic";
+import type { ProgressPoint, TrainingRecord } from "./record";
 import type { TrainMessage, TrainRequest } from "./worker";
 
 export interface TrainingRun {
@@ -13,7 +13,7 @@ export function trainInWorker(
   system: FuzzySystem,
   samples: readonly Sample[],
   fileName: string,
-  onGeneration: (stat: GenerationStat) => void,
+  onProgress: (point: ProgressPoint) => void,
 ): TrainingRun {
   const worker = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
   let rejectRun: (err: Error) => void = () => {};
@@ -22,7 +22,7 @@ export function trainInWorker(
     rejectRun = reject;
     worker.onmessage = (e: MessageEvent<TrainMessage>) => {
       const m = e.data;
-      if (m.type === "generation") return onGeneration(m.stat);
+      if (m.type === "progress") return onProgress(m.point);
       worker.terminate();
       if (m.type === "done") resolve(m.record);
       else reject(new Error(m.message));

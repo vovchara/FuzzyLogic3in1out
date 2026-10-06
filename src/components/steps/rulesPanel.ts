@@ -1,8 +1,9 @@
 import { q, qa } from "../../dom";
-import { FIRE_EPS, ruleStrength } from "../../fuzzy/engine";
+import { fireThreshold, ruleStrength } from "../../fuzzy/engine";
 import { formatDegree } from "../../utils/format";
 import type { FuzzySystem, FuzzyVariable } from "../../fuzzy/types";
 import type { AppShellCtx, Unmount } from "../context";
+import { supportsAggregatedSet } from "./aggregatedPanel";
 
 export function mountRulesPanel(
   container: HTMLElement,
@@ -16,12 +17,16 @@ export function mountRulesPanel(
   const varById = new Map<string, FuzzyVariable>();
   for (const v of system.inputs) varById.set(v.id, v);
   varById.set(system.output.id, system.output);
+  // Only a clipped output has a level set by its strongest rule; singletons
+  // are summed rule by rule, so a "max" mark would explain nothing there.
+  const clipping = supportsAggregatedSet(system);
+  const threshold = fireThreshold(system);
 
   container.innerHTML = `
     <p class="text-[11px] text-graphite-400 mb-2">
       <span data-i18n="rule.legendTint"></span>
-      <span class="mx-1 text-graphite-300">·</span>
-      <span data-i18n="rule.legendDominant"></span>
+      ${clipping ? `<span class="mx-1 text-graphite-300">·</span>
+      <span data-i18n="rule.legendDominant"></span>` : ""}
     </p>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -31,7 +36,7 @@ export function mountRulesPanel(
             <th class="text-left px-2 py-1 font-medium" data-i18n="rule.if"></th>
             <th class="text-left px-2 py-1 font-medium" data-i18n="rule.then"></th>
             <th class="text-right px-2 py-1 font-medium" data-i18n="rule.alpha"
-                data-i18n-title="rule.alphaHint"></th>
+                data-i18n-title="${system.conjunction === "product" ? "rule.alphaHintProduct" : "rule.alphaHint"}"></th>
           </tr>
         </thead>
         <tbody>
@@ -47,24 +52,24 @@ export function mountRulesPanel(
 
     const truths = new Map<string, number>();
     for (const rule of system.rules) {
-      truths.set(rule.id, ruleStrength(rule, evaluation.memberships));
+      truths.set(rule.id, ruleStrength(rule, evaluation.memberships, system.conjunction));
     }
-    const dominant = dominantRuleIds(system, truths);
+    const dominant = dominantRuleIds(system, truths, threshold);
 
     for (const tr of qa(container, "[data-rule]")) {
       const ruleId = tr.dataset.rule!;
       const truth = truths.get(ruleId);
       if (truth === undefined) continue;
 
-      tr.style.backgroundColor = tintFor(truth);
+      tr.style.backgroundColor = tintFor(truth, threshold);
 
       const alphaEl = q(tr, "[data-alpha]");
       alphaEl.textContent = formatDegree(truth);
       // A silent rule's zero would only add noise to a 27-row table.
-      alphaEl.classList.toggle("text-graphite-300", truth <= FIRE_EPS);
-      alphaEl.classList.toggle("text-graphite-800", truth > FIRE_EPS);
+      alphaEl.classList.toggle("text-graphite-300", truth <= threshold);
+      alphaEl.classList.toggle("text-graphite-800", truth > threshold);
 
-      const isDominant = dominant.has(ruleId);
+      const isDominant = clipping && dominant.has(ruleId);
       q(tr, "[data-dominant]").hidden = !isDominant;
       // The clipping level of an output term is the strongest of the rules
       // concluding it, so exactly those rows survive into the resulting set.
@@ -86,13 +91,14 @@ export function mountRulesPanel(
 function dominantRuleIds(
   system: FuzzySystem,
   truths: ReadonlyMap<string, number>,
+  threshold: number,
 ): Set<string> {
   const best = new Map<string, { id: string; truth: number }>();
   for (const rule of system.rules) {
     const termId = rule.then[system.output.id];
     if (termId === undefined) continue;
     const truth = truths.get(rule.id) ?? 0;
-    if (truth <= FIRE_EPS) continue;
+    if (truth <= threshold) continue;
     const current = best.get(termId);
     if (!current || truth > current.truth) best.set(termId, { id: rule.id, truth });
   }
@@ -110,10 +116,13 @@ function colorOfConclusion(system: FuzzySystem, ruleId: string): string {
 // hiding everything below a threshold.
 const TINT_RGB = "251, 191, 36"; // amber-400
 const TINT_MAX_ALPHA = 0.55;
+// A product of three memberships is often far below 0.1, yet the rule fired;
+// a floor keeps such a row visibly tinted.
+const TINT_MIN_ALPHA = 0.08;
 
-function tintFor(truth: number): string {
-  if (truth <= FIRE_EPS) return "";
-  return `rgba(${TINT_RGB}, ${(truth * TINT_MAX_ALPHA).toFixed(3)})`;
+function tintFor(truth: number, threshold: number): string {
+  if (truth <= threshold) return "";
+  return `rgba(${TINT_RGB}, ${Math.max(TINT_MIN_ALPHA, truth * TINT_MAX_ALPHA).toFixed(3)})`;
 }
 
 function rowHtml(

@@ -1,7 +1,7 @@
 import { evaluateShape } from "../../fuzzy/engine";
 import type { FuzzySystem, FuzzyVariable, MembershipShape } from "../../fuzzy/types";
 import { t } from "../../i18n";
-import { diffSystems, type TrainingRecord } from "../../training/record";
+import { diffSystems, shapeParams, type TrainingRecord } from "../../training/record";
 import { formatValue } from "../../utils/format";
 
 const W = 200;
@@ -9,8 +9,8 @@ const H = 48;
 const SAMPLES = 80;
 
 /**
- * What the GA moved, one card per variable — its terms before and after as a
- * table and as overlaid curves — then the rules whose conclusion changed.
+ * What training moved, one card per variable — its terms before and after as
+ * a table and as overlaid curves — then the rules whose conclusion changed.
  * The curves carry the point: a list of numbers says a centre moved from 40
  * to 45, the picture shows which neighbour the term now overlaps.
  */
@@ -53,19 +53,31 @@ export function changesHtml(expert: FuzzySystem, record: TrainingRecord): string
 }
 
 function variableCard(before: FuzzyVariable, after: FuzzyVariable): string {
+  // Gaussians read as centre and width; break points and singletons as the
+  // plain list of numbers that define them.
+  const gaussian = before.terms.every((term) => term.shape.kind === "gaussian");
   const rows = before.terms
     .map((term, k) => {
       const next = after.terms[k];
+      const cells = gaussian
+        ? `<td class="py-1 pr-2 text-right">${pair(term.shape, next.shape, 0, before.range)}</td>
+           <td class="py-1 text-right">${pair(term.shape, next.shape, 1, before.range)}</td>`
+        : `<td class="py-1 text-right">${pointList(term.shape, next.shape, before.range)}</td>`;
       return `
         <tr class="border-t border-graphite-100">
           <td class="py-1 pr-2 whitespace-nowrap">
             <span class="inline-block w-2 h-2 rounded-full align-middle mr-1" style="background:${term.color}"></span>${t(term.nameKey)}
           </td>
-          <td class="py-1 pr-2 text-right">${pair(term.shape, next.shape, "bias", before.range)}</td>
-          <td class="py-1 text-right">${pair(term.shape, next.shape, "sigma", before.range)}</td>
+          ${cells}
         </tr>`;
     })
     .join("");
+
+  const singleton = before.terms.every((term) => term.shape.kind === "singleton");
+  const head = gaussian
+    ? `<th class="pb-1 pr-2 text-right font-normal" data-i18n="training.centre"></th>
+       <th class="pb-1 text-right font-normal" data-i18n="training.width"></th>`
+    : `<th class="pb-1 text-right font-normal" data-i18n="${singleton ? "training.value" : "training.points"}"></th>`;
 
   return `
     <div class="rounded-md border border-graphite-200 bg-white p-3 min-w-0">
@@ -78,8 +90,7 @@ function variableCard(before: FuzzyVariable, after: FuzzyVariable): string {
         <thead>
           <tr class="text-graphite-400">
             <th class="pb-1 text-left font-normal"></th>
-            <th class="pb-1 pr-2 text-right font-normal" data-i18n="training.centre"></th>
-            <th class="pb-1 text-right font-normal" data-i18n="training.width"></th>
+            ${head}
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -91,14 +102,27 @@ function variableCard(before: FuzzyVariable, after: FuzzyVariable): string {
 function pair(
   from: MembershipShape,
   to: MembershipShape,
-  param: "bias" | "sigma",
+  index: number,
   range: readonly [number, number],
 ): string {
-  if (from.kind !== "gaussian" || to.kind !== "gaussian") return "";
-  const a = formatValue(from[param], range);
-  const b = formatValue(to[param], range);
+  const a = formatValue(shapeParams(from)[index]?.[1] ?? NaN, range);
+  const b = formatValue(shapeParams(to)[index]?.[1] ?? NaN, range);
   if (a === b) return `<span class="text-graphite-400">${a}</span>`;
   return `<span class="whitespace-nowrap">${a} → <b class="text-graphite-900">${b}</b></span>`;
+}
+
+/**
+ * The numbers of a term in order, each moved one as "before → after"; a
+ * narrow screen wraps between numbers, never inside a pair. A shoulder's
+ * repeated edge point is listed once: [0, 0, 0, 8] reads as the triangle
+ * "0, 8" the dissertation writes.
+ */
+function pointList(from: MembershipShape, to: MembershipShape, range: readonly [number, number]): string {
+  const a = shapeParams(from).map(([, x]) => x);
+  const b = shapeParams(to).map(([, x]) => x);
+  return a
+    .flatMap((x, i) => (i > 0 && x === a[i - 1] && b[i] === b[i - 1] ? [] : [pair(from, to, i, range)]))
+    .join(`<span class="text-graphite-300">, </span>`);
 }
 
 /** Each term before (dashed) and after (solid), in its own colour. */

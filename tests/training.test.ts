@@ -3,7 +3,7 @@ import readXlsx from "read-excel-file/universal";
 import writeXlsxFile from "write-excel-file/universal";
 import { routingSystem } from "../src/fuzzy/systems/routing";
 import { commCtrlSystem } from "../src/fuzzy/systems/commCtrl";
-import { hasTemplate, MIN_SAMPLES, parseDataset, TEMPLATE_SIZES, templateRows, type Cell } from "../src/training/dataset";
+import { hasTemplate, MIN_SAMPLES, parseDataset, templateRows, templateSizes, type Cell } from "../src/training/dataset";
 import { canTrain } from "../src/training/config";
 import { optimizeGenetic, rmse, stallChange, type GenerationStat } from "../src/training/genetic";
 import { diffSystems, rebase, sameStructure } from "../src/training/record";
@@ -26,7 +26,7 @@ describe("dataset", () => {
   });
 
   test("every offered size yields that many valid rows", () => {
-    for (const { rows } of TEMPLATE_SIZES) {
+    for (const { rows } of templateSizes(routingSystem)) {
       const parsed = parseDataset(routingSystem, templateRows(routingSystem, rows));
       expect(parsed.samples).toHaveLength(rows);
       expect(parsed.skipped).toBe(0);
