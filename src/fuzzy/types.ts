@@ -6,6 +6,9 @@ export type MembershipShape =
 
 export type DefuzzMethod = "centroid" | "bisector" | "weighted-average" | "weighted-sum";
 
+/** How a rule combines its antecedent memberships into one firing strength. */
+export type Conjunction = "min" | "product";
+
 export interface FuzzyTerm {
   readonly id: string;
   readonly nameKey: string;
@@ -35,6 +38,8 @@ export interface FuzzySystem {
   readonly nameKey: string;
   readonly descriptionKey: string;
   readonly defuzz: DefuzzMethod;
+  /** AND of the antecedents; min when absent. Honoured on the singleton path only. */
+  readonly conjunction?: Conjunction;
   readonly inputs: readonly FuzzyVariable[];
   readonly output: FuzzyVariable;
   readonly rules: readonly FuzzyRule[];

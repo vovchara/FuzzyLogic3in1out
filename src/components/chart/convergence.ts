@@ -4,24 +4,26 @@ import { drawAxes, drawGrid, niceTicks, preparePlot } from "./plot";
 
 const PAD = { left: 36, right: 8, top: 16, bottom: 20 } as const;
 
+/** One step of a run: the error being minimised and the curve drawn beside it. */
 export interface ConvergencePoint {
-  readonly generation: number;
-  readonly best: number;
-  readonly mean: number;
+  readonly step: number;
+  readonly primary: number;
+  readonly secondary: number;
 }
 
 /**
- * Best and population-mean error per generation — the app's version of
- * MATLAB's convergence plot (Рис. 4.11). `totalGenerations` fixes the x axis
- * while a run is still filling it in; the axis titles come in translated.
+ * Error per generation or epoch — the app's version of MATLAB's convergence
+ * plot (Рис. 4.11) and training error plot (Рис. 3.9). The primary curve is
+ * drawn bold, the secondary muted. `totalSteps` fixes the x axis while a run
+ * is still filling it in; the axis titles come in translated.
  */
 export function drawConvergence(
   canvas: HTMLCanvasElement,
   points: readonly ConvergencePoint[],
-  totalGenerations: number,
+  totalSteps: number,
   titles: { readonly y: string; readonly x: string },
 ): void {
-  const finite = points.flatMap((g) => [g.best, g.mean]).filter(Number.isFinite);
+  const finite = points.flatMap((g) => [g.primary, g.secondary]).filter(Number.isFinite);
   const peak = finite.length > 0 ? Math.max(...finite) : 1;
   // The top of the axis is the first round tick at or above the curve, so the
   // highest label sits at the top edge rather than somewhere below the peak.
@@ -29,7 +31,7 @@ export function drawConvergence(
   const step = base.length > 1 ? base[1] - base[0] : peak;
   const yMax = Math.ceil(peak / step - 1e-9) * step;
   const yTicks = Array.from({ length: Math.round(yMax / step) + 1 }, (_, i) => Number((i * step).toFixed(10)));
-  const xMax = Math.max(1, totalGenerations, points.length - 1);
+  const xMax = Math.max(1, totalSteps, points.length - 1);
   const plot = preparePlot(canvas, PAD, [0, xMax], [0, yMax || 1], { width: 280, height: 140 });
   if (!plot) return;
   const { ctx } = plot;
@@ -63,12 +65,12 @@ export function drawConvergence(
     for (const g of points) {
       const y = pick(g);
       if (!Number.isFinite(y)) continue;
-      if (started) ctx.lineTo(plot.x(g.generation), plot.y(y));
-      else ctx.moveTo(plot.x(g.generation), plot.y(y));
+      if (started) ctx.lineTo(plot.x(g.step), plot.y(y));
+      else ctx.moveTo(plot.x(g.step), plot.y(y));
       started = true;
     }
     ctx.stroke();
   };
-  line((g) => g.mean, CHART.muted, 1.5);
-  line((g) => g.best, CHART.marker, 2);
+  line((g) => g.secondary, CHART.muted, 1.5);
+  line((g) => g.primary, CHART.marker, 2);
 }

@@ -21,10 +21,15 @@
     "fuzzificationHint": "Każda liczba wejściowa zamienia się w stopnie przynależności do termów danej zmiennej.",
     "rules": "Ocena reguł",
     "rulesHint": "Siła zadziałania reguły to jej najsłabszy warunek: α = min(warunków).",
+    "rulesHintProduct": "Siła zadziałania reguły to iloczyn jej warunków: α = µ₁·µ₂·µ₃.",
     "aggregation": "Akumulacja",
     "aggregationHint": "Wnioski reguł są obcinane do siły ich zadziałania i łączone w jeden zbiór rozmyty.",
     "defuzzification": "Wyostrzanie",
     "defuzzificationHint": "Z wynikowego zbioru odczytywana jest jedna liczba — odcięta jego środka ciężkości. To odpowiedź sterownika.",
+    "defuzzificationHintSingleton": {
+      "weighted-sum": "Każda reguła dodaje swój singleton pomnożony przez siłę zadziałania: Σ α·c. To odpowiedź sterownika.",
+      "weighted-average": "Singletony reguł są uśredniane z wagami — siłami zadziałania: Σ α·c / Σ α. To odpowiedź sterownika."
+    },
     "interpretation": "Interpretacja wyniku",
     "interpretationHint": "Otrzymana liczba jest nakładana z powrotem na funkcje przynależności wyjścia — widać, do którego termu należy najbardziej."
   },
@@ -113,6 +118,7 @@
     "is": "=",
     "alpha": "α",
     "alphaHint": "Siła zadziałania reguły: minimum stopni przynależności wejść",
+    "alphaHintProduct": "Siła zadziałania reguły: iloczyn stopni przynależności wejść",
     "legendTint": "Wypełnienie wiersza odpowiada sile zadziałania α.",
     "legendDominant": "Znacznik max oznacza najsilniejszą regułę dla swojego termu wyjścia: to ona wyznacza poziom obcięcia.",
     "dominant": "max",
@@ -188,7 +194,10 @@
     "generations": "Pokolenia",
     "stoppedBy": {
       "tolerance": "krzywa się wypłaszczyła",
-      "generations": "osiągnięto limit"
+      "generations": "osiągnięto limit",
+      "epochs": "wszystkie epoki wykonane",
+      "goal": "osiągnięto docelowy błąd",
+      "checking": "błąd testowy przestał maleć"
     },
     "trainedNote": "Sterownik działa na zoptymalizowanych parametrach",
     "chartEmpty": "Wykres zbieżności pojawi się podczas uczenia.",
@@ -223,7 +232,17 @@
       "changedParams": "Zmienione parametry FP",
       "changedRules": "Zmienione reguły",
       "generation": "Pokolenie",
-      "objectiveBest": "J (funkcja celu)"
+      "objectiveBest": "J (funkcja celu)",
+      "method": "Metoda",
+      "epochs": "Liczba epok",
+      "bestEpoch": "Zastosowana epoka",
+      "epoch": "Epoka",
+      "sheetEpochs": "Epoki",
+      "a": "punkt a",
+      "b": "punkt b",
+      "c": "punkt c",
+      "d": "punkt d",
+      "at": "wartość"
     },
     "changesCount": "{{params}} parametrów FP, {{rules}} reguł",
     "curveBefore": "przed uczeniem",
@@ -232,6 +251,36 @@
     "width": "szerokość σ",
     "rulesChanged": "Zmienione reguły",
     "stopHint": "Zatrzyma się samo, gdy krzywa się wypłaszczy.",
-    "axisGenerations": "pokolenie"
+    "axisGenerations": "pokolenie",
+    "method": "Algorytm genetyczny",
+    "value": "wartość",
+    "points": "punkty załamania",
+    "anfis": {
+      "method": "ANFIS, metoda hybrydowa",
+      "title": "Uczenie ANFIS",
+      "stateTrained": "Nauczono ANFIS",
+      "hint": "ANFIS metodą hybrydową dopasowuje funkcje przynależności i singletony wyjścia do zbioru danych z kolumnami EE, Dis, Dat, AP.",
+      "upload": "Ucz na zbiorze danych…",
+      "progress": "Epoka {{gen}} · RMSE {{rmse}}",
+      "cancelled": "Uczenie zatrzymano — parametry sterownika bez zmian.",
+      "trainedNote": "Sterownik działa na parametrach nauczonych przez ANFIS",
+      "chartEmpty": "Wykres błędu pojawi się podczas uczenia.",
+      "legendBest": "RMSE uczące",
+      "legendMean": "RMSE testowe",
+      "generations": "Liczba epok",
+      "axisGenerations": "epoka",
+      "stopHint": "Zatrzyma się samo, gdy błąd testowy przestanie maleć.",
+      "errors": {
+        "failed": "Uczenie zakończyło się błędem."
+      },
+      "resetConfirm": {
+        "title": "Przywrócić parametry eksperckie?",
+        "body": "Wynik uczenia ANFIS zostanie usunięty, a sterownik wróci do funkcji przynależności i singletonów eksperta. Aby go odzyskać, trzeba ponownie uruchomić uczenie."
+      },
+      "sizeDialog": {
+        "body": "Syntetyczne dane demonstracyjne, wygenerowane przez sterownik z celowo przesuniętymi parametrami. 20% wierszy odkłada się jako zbiór testowy."
+      },
+      "bestEpoch": "zastosowano epokę {{n}}"
+    }
   }
 }

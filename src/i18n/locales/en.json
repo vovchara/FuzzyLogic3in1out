@@ -22,9 +22,14 @@
     "aggregation": "Accumulation",
     "fuzzificationHint": "Each input number turns into degrees of membership in that variable's terms.",
     "rulesHint": "A rule's firing strength is its weakest condition: α = min(conditions).",
+    "rulesHintProduct": "A rule's firing strength is the product of its conditions: α = µ₁·µ₂·µ₃.",
     "aggregationHint": "Rule conclusions are clipped to their firing strength and merged into a single fuzzy set.",
     "defuzzification": "Defuzzification",
     "defuzzificationHint": "One number is read off the resulting set — the abscissa of its centre of gravity. That is the controller's answer.",
+    "defuzzificationHintSingleton": {
+      "weighted-sum": "Each rule adds its singleton multiplied by its firing strength: Σ α·c. That is the controller's answer.",
+      "weighted-average": "The rule singletons are averaged, weighted by firing strength: Σ α·c / Σ α. That is the controller's answer."
+    },
     "interpretation": "Result interpretation",
     "interpretationHint": "The crisp value is placed back on the output's membership functions, showing which term it belongs to most."
   },
@@ -113,6 +118,7 @@
     "is": "=",
     "alpha": "α",
     "alphaHint": "Rule firing strength: the minimum of the input membership degrees",
+    "alphaHintProduct": "Rule firing strength: the product of the input membership degrees",
     "legendTint": "Row tint tracks the firing strength α.",
     "legendDominant": "The max badge marks the strongest rule for its output term: that one sets the clipping level.",
     "dominant": "max",
@@ -188,7 +194,10 @@
     "generations": "Generations",
     "stoppedBy": {
       "tolerance": "curve flattened",
-      "generations": "limit reached"
+      "generations": "limit reached",
+      "epochs": "all epochs done",
+      "goal": "error goal reached",
+      "checking": "test error stopped falling"
     },
     "trainedNote": "The controller runs on optimised parameters",
     "chartEmpty": "The convergence chart appears during training.",
@@ -223,7 +232,17 @@
       "changedParams": "MF parameters changed",
       "changedRules": "Rules changed",
       "generation": "Generation",
-      "objectiveBest": "J (objective)"
+      "objectiveBest": "J (objective)",
+      "method": "Method",
+      "epochs": "Epochs",
+      "bestEpoch": "Applied epoch",
+      "epoch": "Epoch",
+      "sheetEpochs": "Epochs",
+      "a": "point a",
+      "b": "point b",
+      "c": "point c",
+      "d": "point d",
+      "at": "value"
     },
     "changesCount": "{{params}} MF parameters, {{rules}} rules",
     "curveBefore": "before training",
@@ -232,6 +251,36 @@
     "width": "width σ",
     "rulesChanged": "Changed rules",
     "stopHint": "Stops by itself once the curve flattens.",
-    "axisGenerations": "generation"
+    "axisGenerations": "generation",
+    "method": "Genetic algorithm",
+    "value": "value",
+    "points": "break points",
+    "anfis": {
+      "method": "ANFIS, hybrid method",
+      "title": "ANFIS training",
+      "stateTrained": "ANFIS-trained",
+      "hint": "ANFIS tunes the membership functions and the output singletons to a dataset with columns EE, Dis, Dat, AP using the hybrid method.",
+      "upload": "Train on a dataset…",
+      "progress": "Epoch {{gen}} · RMSE {{rmse}}",
+      "cancelled": "Training stopped — the controller is unchanged.",
+      "trainedNote": "The controller runs on ANFIS-trained parameters",
+      "chartEmpty": "The error chart appears during training.",
+      "legendBest": "training RMSE",
+      "legendMean": "test RMSE",
+      "generations": "Epochs",
+      "axisGenerations": "epoch",
+      "stopHint": "Stops by itself once the test error stops falling.",
+      "errors": {
+        "failed": "Training failed."
+      },
+      "resetConfirm": {
+        "title": "Restore expert parameters?",
+        "body": "The ANFIS training result will be discarded and the controller will return to the expert's membership functions and singletons. Getting it back means running the training again."
+      },
+      "sizeDialog": {
+        "body": "Synthetic demo data, produced by the controller with deliberately shifted parameters. 20% of the rows are held out as the test set."
+      },
+      "bestEpoch": "epoch {{n}} applied"
+    }
   }
 }

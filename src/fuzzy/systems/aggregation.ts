@@ -25,7 +25,11 @@ export const aggregationSystem: FuzzySystem = {
   id: "aggregation",
   nameKey: `${ns}.name`,
   descriptionKey: `${ns}.description`,
-  defuzz: "weighted-sum",
+  // Zero-order Sugeno as chapter 3 writes it: product AND (3.4) and the
+  // weighted average of the rule singletons (3.14–3.17), the same inference
+  // ANFIS trains. MATLAB's AggregWSN (Рис. 3.1, 3.6) used min and wtsum.
+  conjunction: "product",
+  defuzz: "weighted-average",
   inputs: [
     {
       id: "EE",

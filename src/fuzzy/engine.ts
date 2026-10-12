@@ -9,6 +9,7 @@ import {
 } from "@thi.ng/fuzzy";
 import type {
   AggregatedSet,
+  Conjunction,
   FuzzyCurve,
   FuzzyEvaluation,
   FuzzySystem,
@@ -52,18 +53,31 @@ function inputMemberships(
 export const FIRE_EPS = 0.001;
 
 /**
- * Firing strength of one rule: the min-conjunction of its antecedent
- * memberships. Exported because the rule table and the flow strip report the
- * same number the inference uses, and a second copy of it could drift.
+ * The strength above which a rule of this system counts as fired. Only
+ * gaussian inputs need FIRE_EPS: a product of triangular memberships can be
+ * tiny and still decide a normalised output on its own, so there any
+ * non-zero strength is a fired rule.
+ */
+export function fireThreshold(system: FuzzySystem): number {
+  return system.inputs.some((v) => v.terms.some((t) => t.shape.kind === "gaussian")) ? FIRE_EPS : 0;
+}
+
+/**
+ * Firing strength of one rule: the conjunction (min unless stated) of its
+ * antecedent memberships. Exported because the rule table and the flow strip
+ * report the same number the inference uses, and a second copy of it could
+ * drift.
  */
 export function ruleStrength(
   rule: { readonly if: Readonly<Record<string, string>> },
   memberships: Readonly<Record<string, Readonly<Record<string, number>>>>,
+  conjunction: Conjunction = "min",
 ): number {
   let strength = 1;
   for (const [varId, termId] of Object.entries(rule.if)) {
     const m = memberships[varId]?.[termId] ?? 0;
-    if (m < strength) strength = m;
+    if (conjunction === "product") strength *= m;
+    else if (m < strength) strength = m;
   }
   return strength;
 }
@@ -96,7 +110,7 @@ function weightedSingletons(
   let denominator = 0;
 
   for (const rule of system.rules) {
-    const strength = ruleStrength(rule, inputEvals);
+    const strength = ruleStrength(rule, inputEvals, system.conjunction);
     if (strength <= 0) continue;
 
     for (const [varId, termId] of Object.entries(rule.then)) {

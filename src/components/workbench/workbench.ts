@@ -1,5 +1,5 @@
 import { applyI18n, q, qa } from "../../dom";
-import { curvePeak, FIRE_EPS, ruleStrength, strongestTerm } from "../../fuzzy/engine";
+import { curvePeak, fireThreshold, ruleStrength, strongestTerm } from "../../fuzzy/engine";
 import type { FuzzySystem } from "../../fuzzy/types";
 import { t } from "../../i18n";
 import { formatDegree } from "../../utils/format";
@@ -41,12 +41,12 @@ function stepsFor(system: FuzzySystem): InferenceStep[] {
       id: "rules",
       titleKey: "steps.rules",
       shortKey: "flow.short.rules",
-      hintKey: "steps.rulesHint",
+      hintKey: system.conjunction === "product" ? "steps.rulesHintProduct" : "steps.rulesHint",
       mount: mountRulesPanel,
       status: (s, state) => {
         const ev = state.evaluation;
         if (!ev) return "";
-        const fired = s.rules.filter((r) => ruleStrength(r, ev.memberships) > FIRE_EPS).length;
+        const fired = s.rules.filter((r) => ruleStrength(r, ev.memberships, s.conjunction) > fireThreshold(s)).length;
         return t("flow.status.firedRules", { n: fired, total: s.rules.length });
       },
     },
@@ -92,13 +92,15 @@ function stepsFor(system: FuzzySystem): InferenceStep[] {
     return steps;
   }
 
-  // Singleton outputs have no resulting set: the weighted sum over the rule
-  // activations is the defuzzification, and that is what this panel shows.
+  // Singleton outputs have no resulting set: the weighted sum or average of
+  // the rule singletons is the defuzzification, and that is what this panel shows.
   steps.push({
     id: "defuzzification",
     titleKey: "steps.defuzzification",
     shortKey: "flow.short.defuzzification",
-    hintKey: "steps.defuzzificationHint",
+    hintKey: system.defuzz === "weighted-sum" || system.defuzz === "weighted-average"
+      ? `steps.defuzzificationHintSingleton.${system.defuzz}`
+      : "steps.defuzzificationHint",
     mount: mountDefuzzPanel,
     status: (s) => t(`output.defuzzMethod.${s.defuzz}`),
   });

@@ -11,10 +11,20 @@ beforeAll(() => {
 const calc = (EE: number, Dis: number, Dat: number): number =>
   engine.evaluate({ EE, Dis, Dat }).output;
 
-describe("Aggregation controller (weighted-sum defuzz, singleton output)", () => {
-  test("Matches chapter 3 worked example (Fig. 3.6): EE=3, Dis=19, Dat=7 -> AP≈57.8", () => {
-    // Only rule 1 fires, at min(0.625, 0.578, 0.72) = 26/45.
-    expect(calc(3, 19, 7)).toBeCloseTo(57.8, 1);
+describe("Aggregation controller (product AND, weighted-average defuzz, singleton output)", () => {
+  test("Chapter 3 worked example (Fig. 3.6): EE=3, Dis=19, Dat=7 -> AP = 100", () => {
+    // Only rule 1 fires, so the weighted average is its singleton whatever its
+    // strength. MATLAB's min + wtsum printed 0.578 · 100 = 57.8 here.
+    expect(calc(3, 19, 7)).toBeCloseTo(100, 6);
+  });
+
+  test("Two-rule point: strengths are products, the output their weighted average (3.4, 3.17)", () => {
+    // EE=6 (Small .25, Medium .1818), Dis=35 (Small .2222, Medium .25), Dat=20 (Small .2, Medium .1111):
+    // r01 = .25·.2222·.2 → 100, r02 = .25·.25·.1111 → 80, r03 = .1818·.25·.2 → 60.
+    const r1 = 0.25 * (10 / 45) * 0.2;
+    const r2 = 0.25 * 0.25 * (5 / 45);
+    const r3 = (2 / 11) * 0.25 * 0.2;
+    expect(calc(6, 35, 20)).toBeCloseTo((r1 * 100 + r2 * 80 + r3 * 60) / (r1 + r2 + r3), 6);
   });
 
   test("Reports no result where the sparse rule base has a hole", () => {

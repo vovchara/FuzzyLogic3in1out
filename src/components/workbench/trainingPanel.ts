@@ -1,20 +1,36 @@
 import { applyI18n, q } from "../../dom";
 import type { FuzzySystem } from "../../fuzzy/types";
 import { t } from "../../i18n";
+import { DEFAULT_ANFIS_OPTIONS } from "../../training/anfis";
 import { trainInWorker, type TrainingRun } from "../../training/client";
-import { hasTemplate, parseDataset, TEMPLATE_SIZES, templateRows, type DatasetError } from "../../training/dataset";
-import { DEFAULT_GENETIC_OPTIONS, type GenerationStat } from "../../training/genetic";
-import type { TrainingRecord } from "../../training/record";
+import { trainingMethod, type TrainingMethod } from "../../training/config";
+import { hasTemplate, parseDataset, templateRows, templateSizes, type DatasetError } from "../../training/dataset";
+import { DEFAULT_GENETIC_OPTIONS } from "../../training/genetic";
+import { progressOf, type ProgressPoint, type TrainingRecord } from "../../training/record";
 import { reportSheets } from "../../training/report";
 import { downloadXlsx, readTable } from "../../utils/excel";
 import { readString, writeString } from "../../utils/storage";
-import { drawConvergence, type ConvergencePoint } from "../chart/convergence";
+import { drawConvergence } from "../chart/convergence";
 import { chooseDialog, confirmDialog } from "../shell/confirmDialog";
 import type { AppShellCtx, Unmount } from "../context";
 import { DOWNLOAD_ICON, ROLLBACK_ICON } from "../icons";
 import { changesHtml } from "./trainingChanges";
 
 const OPEN_KEY = "fuzzy.trainingOpen";
+
+/**
+ * Strings that name the method or its steps; ANFIS has its own under
+ * `training.anfis`, everything else on the card is shared.
+ */
+const METHOD_KEYS = new Set([
+  "title", "stateTrained", "hint", "upload", "progress", "cancelled", "trainedNote", "chartEmpty",
+  "legendBest", "legendMean", "generations", "axisGenerations", "stopHint", "errors.failed",
+  "resetConfirm.title", "resetConfirm.body", "sizeDialog.body",
+]);
+
+function keyFor(method: TrainingMethod): (key: string) => string {
+  return (key) => (method === "anfis" && METHOD_KEYS.has(key) ? `training.anfis.${key}` : `training.${key}`);
+}
 
 /**
  * The workbench's door to the training module: a collapsible card above the
@@ -31,6 +47,8 @@ export function mountTrainingPanel(
 ): Unmount {
   const expert = ctx.getExpertSystem(system.id);
   const record = ctx.getTraining(system.id);
+  const method = trainingMethod(expert) ?? "genetic";
+  const key = keyFor(method);
   const open = readString(OPEN_KEY) === "1";
 
   // The one place that says the controller runs on optimised parameters, so
@@ -38,10 +56,10 @@ export function mountTrainingPanel(
   const cardClasses = record ? "!border-brand-500 ring-2 ring-brand-500/30 !bg-brand-50" : "";
   const summaryLine = record
     ? `<span class="block mt-0.5 text-xs font-medium text-brand-800">
-         <span data-i18n="training.trainedNote"></span>
+         <span data-i18n="${key("trainedNote")}"></span>
          <span class="block sm:inline font-mono tabular-nums whitespace-nowrap"><span class="hidden sm:inline">· </span>RMSE ${record.rmseBefore.test.toFixed(2)} → ${record.rmseAfter.test.toFixed(2)}</span>
        </span>`
-    : `<span class="block mt-0.5 text-xs text-graphite-500" data-i18n="training.hint"></span>`;
+    : `<span class="block mt-0.5 text-xs text-graphite-500" data-i18n="${key("hint")}"></span>`;
 
   host.innerHTML = `
     <details class="card group p-0 min-w-0 ${cardClasses}" data-training ${open ? "open" : ""}>
@@ -49,28 +67,28 @@ export function mountTrainingPanel(
         <span class="flex items-start gap-3 min-w-0">
           <span class="shrink-0 mt-0.5 w-6 h-6 rounded-md grid place-items-center
                        ${record ? "bg-brand-600 text-white" : "border border-brand-200 bg-brand-50 text-brand-700"}">
-            ${GA_ICON}
+            ${TRAINING_ICON}
           </span>
           <span class="min-w-0">
-            <span class="card-title block ${record ? "!text-brand-800" : ""}" data-i18n="training.title"></span>
+            <span class="card-title block ${record ? "!text-brand-800" : ""}" data-i18n="${key("title")}"></span>
             ${summaryLine}
           </span>
         </span>
         <span class="flex items-center gap-2 shrink-0">
           <span class="whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded
                        ${record ? "bg-brand-600 text-white" : "bg-graphite-100 text-graphite-600"}"
-                data-i18n="${record ? "training.stateTrained" : "training.stateExpert"}"></span>
+                data-i18n="${record ? key("stateTrained") : "training.stateExpert"}"></span>
           ${CHEVRON}
         </span>
       </summary>
 
       <div class="px-4 pb-4 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
         <div class="min-w-0">
-          ${record ? `<p class="text-xs text-graphite-500 mb-3" data-i18n="training.hint"></p>` : ""}
+          ${record ? `<p class="text-xs text-graphite-500 mb-3" data-i18n="${key("hint")}"></p>` : ""}
           <!-- Optimise and its undo side by side: action and counter-action. -->
           <div class="grid gap-2 justify-items-start" data-idle>
             <div class="flex flex-wrap gap-2">
-              <button type="button" class="btn-primary" data-upload data-i18n="training.upload"></button>
+              <button type="button" class="btn-primary" data-upload data-i18n="${key("upload")}"></button>
               ${record ? `
               <!-- Tinted red: it throws the optimisation result away. -->
               <button type="button" data-reset
@@ -95,25 +113,25 @@ export function mountTrainingPanel(
             <div class="h-1.5 rounded-full bg-brand-100 overflow-hidden">
               <div class="h-full w-full bg-brand-600 animate-pulse"></div>
             </div>
-            <p class="text-[11px] text-graphite-500" data-i18n="training.stopHint"></p>
+            <p class="text-[11px] text-graphite-500" data-i18n="${key("stopHint")}"></p>
           </div>
 
           <p class="mt-3 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5"
              data-message hidden></p>
 
-          ${record ? resultHtml(record) : ""}
+          ${record ? resultHtml(record, key) : ""}
         </div>
 
         <div class="min-w-0">
           <div class="grid gap-2" data-chart-block hidden>
             <canvas class="w-full h-[200px]" data-chart></canvas>
             <div class="flex gap-3 text-[11px] text-graphite-500">
-              <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-brand-700"></span><span data-i18n="training.legendBest"></span></span>
-              <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-graphite-300"></span><span data-i18n="training.legendMean"></span></span>
+              <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-brand-700"></span><span data-i18n="${key("legendBest")}"></span></span>
+              <span class="flex items-center gap-1"><span class="w-3 h-0.5 bg-graphite-300"></span><span data-i18n="${key("legendMean")}"></span></span>
             </div>
           </div>
           <p class="h-full min-h-[120px] grid place-items-center rounded-md border border-dashed border-graphite-200
-                    px-4 text-center text-xs text-graphite-400" data-chart-empty data-i18n="training.chartEmpty"></p>
+                    px-4 text-center text-xs text-graphite-400" data-chart-empty data-i18n="${key("chartEmpty")}"></p>
         </div>
 
         ${record ? changesHtml(expert, record) : ""}
@@ -136,11 +154,13 @@ export function mountTrainingPanel(
   const chartEmpty = q(container, "[data-chart-empty]");
   const chart = q<HTMLCanvasElement>(container, "[data-chart]");
   const progressLabel = q(container, "[data-progress-label]");
-  const { stallGenerations } = DEFAULT_GENETIC_OPTIONS;
   const outputSpan = expert.output.range[1] - expert.output.range[0];
+  // While a run goes the axis grows with it, starting at the window of its
+  // stop test so the first steps are not stretched across the chart.
+  const minSteps = method === "anfis" ? DEFAULT_ANFIS_OPTIONS.patience : DEFAULT_GENETIC_OPTIONS.stallGenerations;
 
   let run: TrainingRun | null = null;
-  let history: GenerationStat[] = record ? [...record.history] : [];
+  let history: ProgressPoint[] = record ? progressOf(record, outputSpan) : [];
 
   function showMessage(text: string | null): void {
     message.hidden = text === null;
@@ -150,12 +170,10 @@ export function mountTrainingPanel(
   function redrawChart(): void {
     chartBlock.hidden = history.length === 0;
     chartEmpty.hidden = history.length > 0;
-    // While running the axis grows with the run; it starts at the stall
-    // window so the first generations are not stretched across the chart.
     if (history.length > 0) {
-      drawConvergence(chart, history.map((g) => asRmse(g, outputSpan)), Math.max(stallGenerations, history.length - 1), {
+      drawConvergence(chart, history, Math.max(minSteps, history.length - 1), {
         y: "RMSE",
-        x: t("training.axisGenerations"),
+        x: t(key("axisGenerations")),
       });
     }
   }
@@ -163,10 +181,10 @@ export function mountTrainingPanel(
   container.querySelector("[data-template]")?.addEventListener("click", async () => {
     const choice = await chooseDialog({
       titleKey: "training.sizeDialog.title",
-      bodyKey: "training.sizeDialog.body",
+      bodyKey: key("sizeDialog.body"),
       confirmKey: "training.sizeDialog.confirm",
-      initial: String(TEMPLATE_SIZES[0].rows),
-      choices: TEMPLATE_SIZES.map(({ rows, seconds }, i) => ({
+      initial: String(templateSizes(expert)[0].rows),
+      choices: templateSizes(expert).map(({ rows, seconds }, i) => ({
         value: String(rows),
         label: t("training.sizeDialog.rows", { n: rows }) + ` · ${t(`training.sizeDialog.tag${i}`)}`,
         hint: seconds < 60
@@ -205,18 +223,23 @@ export function mountTrainingPanel(
     idle.hidden = true;
     running.hidden = false;
     history = [];
-    const onGeneration = (stat: GenerationStat) => {
-      history.push(stat);
-      progressLabel.textContent = t("training.progress", {
-        gen: stat.generation,
-        rmse: asRmse(stat, outputSpan).best.toFixed(2),
+    // An ANFIS epoch takes about a millisecond, so the chart is redrawn once
+    // per frame rather than once per step.
+    let frame = 0;
+    const onProgress = (point: ProgressPoint) => {
+      history.push(point);
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const last = history[history.length - 1];
+        progressLabel.textContent = t(key("progress"), { gen: last.step, rmse: last.primary.toFixed(2) });
+        redrawChart();
       });
-      redrawChart();
     };
 
     // Training always starts from the expert controller, never from a
     // previous result, so two runs on one file give the same answer.
-    run = trainInWorker(expert, parsed.samples, file.name, onGeneration);
+    run = trainInWorker(expert, parsed.samples, file.name, onProgress);
     try {
       const result: TrainingRecord = await run.done;
       run = null;
@@ -226,10 +249,10 @@ export function mountTrainingPanel(
       idle.hidden = false;
       running.hidden = true;
       if (err instanceof DOMException && err.name === "AbortError") {
-        showMessage(t("training.cancelled"));
+        showMessage(t(key("cancelled")));
         return;
       }
-      showMessage(t("training.errors.failed"));
+      showMessage(t(key("errors.failed")));
       console.error(err);
     }
   });
@@ -238,8 +261,8 @@ export function mountTrainingPanel(
 
   container.querySelector("[data-reset]")?.addEventListener("click", async () => {
     const confirmed = await confirmDialog({
-      titleKey: "training.resetConfirm.title",
-      bodyKey: "training.resetConfirm.body",
+      titleKey: key("resetConfirm.title"),
+      bodyKey: key("resetConfirm.body"),
       confirmKey: "training.resetConfirm.confirm",
     });
     if (confirmed) ctx.setTraining(system.id, null);
@@ -255,20 +278,6 @@ export function mountTrainingPanel(
   return () => run?.cancel();
 }
 
-/**
- * A generation as the chart shows it: training RMSE in output units, the same
- * number the card prints. Records stored before RMSE was kept per generation
- * fall back to the objective scaled back up, which differs only by the small
- * rule-count term.
- */
-function asRmse(g: GenerationStat, span: number): ConvergencePoint {
-  return {
-    generation: g.generation,
-    best: g.bestRmse ?? g.best * span,
-    mean: g.meanRmse ?? g.mean * span,
-  };
-}
-
 function datasetErrorText(error: DatasetError): string {
   switch (error.kind) {
     case "empty":
@@ -280,7 +289,7 @@ function datasetErrorText(error: DatasetError): string {
   }
 }
 
-function resultHtml(record: TrainingRecord): string {
+function resultHtml(record: TrainingRecord, key: (k: string) => string): string {
   const fmt = (x: number) => x.toFixed(2);
   return `
     <dl class="mt-4 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
@@ -288,8 +297,11 @@ function resultHtml(record: TrainingRecord): string {
       <dd class="font-mono tabular-nums text-right">${fmt(record.rmseBefore.train)} → <b>${fmt(record.rmseAfter.train)}</b></dd>
       <dt class="text-graphite-500" data-i18n="training.rmseTest"></dt>
       <dd class="font-mono tabular-nums text-right">${fmt(record.rmseBefore.test)} → <b>${fmt(record.rmseAfter.test)}</b></dd>
-      <dt class="text-graphite-500" data-i18n="training.generations"></dt>
+      <dt class="text-graphite-500" data-i18n="${key("generations")}"></dt>
       <dd class="text-right"><span class="font-mono tabular-nums">${record.history.length - 1}</span>
+        ${record.method === "anfis" && record.bestEpoch !== undefined
+          ? `· <span class="whitespace-nowrap">${t("training.anfis.bestEpoch", { n: record.bestEpoch })}</span>`
+          : ""}
         · <span data-i18n="training.stoppedBy.${record.stoppedBy}"></span></dd>
       <dt class="text-graphite-500" data-i18n="training.dataset"></dt>
       <dd class="text-right truncate" title="${escapeHtml(record.fileName)}">${escapeHtml(record.fileName)}</dd>
@@ -310,7 +322,7 @@ const CHEVRON = `
   </svg>`;
 
 // Convergence curve: what the card is about.
-const GA_ICON = `
+const TRAINING_ICON = `
   <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="none" stroke="currentColor"
        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M3 4c2 8 5 11 14 12"/>
