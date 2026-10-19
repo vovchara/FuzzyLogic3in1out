@@ -5,11 +5,12 @@ import { canTrain } from "./training/config";
 import { rebase, sameStructure, type TrainingRecord } from "./training/record";
 import type { FuzzySystem } from "./fuzzy/types";
 import { getLang, initI18n, onLanguageChange } from "./i18n";
-import { createStore, type Store } from "./state";
+import { createStore, type AppView, type Store } from "./state";
 import { readJson, readString, writeJson, writeString } from "./utils/storage";
 
 const INPUTS_KEY = "fuzzy.inputs";
 const ACTIVE_SYSTEM_KEY = "fuzzy.activeSystem";
+const ACTIVE_VIEW_KEY = "fuzzy.activeView";
 const TRAINING_KEY = "fuzzy.training";
 
 type SavedInputs = Record<string, Record<string, number>>;
@@ -65,6 +66,7 @@ export async function startApp(root: HTMLElement): Promise<void> {
 
   const store: Store = createStore({
     language: getLang(),
+    view: readString(ACTIVE_VIEW_KEY) === "simulation" ? "simulation" : "workbench",
     activeSystemId: initialSystem.id,
     inputs: initialInputs,
     evaluation: initialEvaluation,
@@ -93,6 +95,11 @@ export async function startApp(root: HTMLElement): Promise<void> {
       inputs: newInputs,
       evaluation: engine.evaluate(newInputs),
     });
+  }
+
+  function setView(view: AppView): void {
+    writeString(ACTIVE_VIEW_KEY, view);
+    store.setState({ view });
   }
 
   onLanguageChange((lang) => store.setState({ language: lang }));
@@ -135,6 +142,7 @@ export async function startApp(root: HTMLElement): Promise<void> {
     systems,
     updateInputs,
     switchSystem,
+    setView,
     getEngine,
     getSystem,
     getExpertSystem,

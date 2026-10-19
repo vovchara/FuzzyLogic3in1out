@@ -1,7 +1,7 @@
 import type { FuzzyEngine } from "../fuzzy/engine";
 import type { TrainingRecord } from "../training/record";
 import type { FuzzySystem } from "../fuzzy/types";
-import type { AppState, Store } from "../state";
+import type { AppState, AppView, Store } from "../state";
 
 /**
  * Everything a component is allowed to reach outside itself. Keeping it here
@@ -13,6 +13,7 @@ export interface AppShellCtx {
   systems: readonly FuzzySystem[];
   updateInputs(patch: Readonly<Record<string, number>>): void;
   switchSystem(id: string): void;
+  setView(view: AppView): void;
   getEngine(systemId: string): FuzzyEngine;
   /** The controller as it currently runs: the expert one, or its optimised version. */
   getSystem(systemId: string): FuzzySystem;

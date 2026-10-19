@@ -150,6 +150,39 @@
       "firedRules": "{{n}} z {{total}}"
     }
   },
+  "simulation": {
+    "tab": "Symulacja",
+    "title": "Symulacja współpracy trzech kontrolerów na wirtualnym polu sieci",
+    "nodeCount": "Liczba węzłów",
+    "regenerate": "Wygeneruj ponownie",
+    "field": "Pole",
+    "results": "Węzły",
+    "role": "Rola",
+    "baseShort": "SB",
+    "legendBase": "Stacja bazowa",
+    "roles": {
+      "head": "Węzeł główny",
+      "aggregator": "Agregator",
+      "member": "Czujnik"
+    },
+    "noHead": "Żadna reguła klasteryzacji nie zadziałała — nie wybrano węzła głównego",
+    "columns": {
+      "id": "Nr",
+      "x": "X",
+      "y": "Y",
+      "re": "Energia resztkowa (RE)",
+      "dat": "Liczba pakietów (Dat)",
+      "dist": "Odległość do SB (d)",
+      "lq": "Jakość łącza (LQ)",
+      "pdr": "Współczynnik dostarczania pakietów (PDR)",
+      "td": "Opóźnienie transmisji (TD)",
+      "chs": "Przydatność na głowicę klastra (CHS)",
+      "ee": "Zużycie energii (EE)",
+      "ap": "Priorytet agregacji (AP)"
+    },
+    "legendRoute": "Trasa (RS)",
+    "legendFlow": "Zbieranie danych"
+  },
   "training": {
     "title": "Optymalizacja genetyczna",
     "stateExpert": "Parametry eksperckie",

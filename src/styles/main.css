@@ -51,6 +51,16 @@
     cursor: pointer;
     accent-color: #0f6a61;
   }
+  /* Dense table cells: the native spinner would eat half the digits. */
+  input[data-edit]::-webkit-inner-spin-button,
+  input[data-edit]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[data-edit] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
   /*
    * Preflight hides [hidden] through a zero-specificity :where() rule that any
    * display utility (.flex, .grid, .inline) outranks by source order, so
