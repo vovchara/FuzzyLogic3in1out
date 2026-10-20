@@ -28,7 +28,15 @@ export async function downloadXlsx(
   fileName: string,
 ): Promise<void> {
   const { default: writeXlsxFile } = await import("write-excel-file/universal");
-  const blob = await writeXlsxFile(sheets.map((s) => ({ sheet: s.name, data: cells(s.rows) }))).toBlob();
+  saveBlob(await writeXlsxFile(sheets.map((s) => ({ sheet: s.name, data: cells(s.rows) }))).toBlob(), fileName);
+}
+
+/** Saves a ready-made text file (the demo telemetry CSV) the same way. */
+export function downloadText(text: string, fileName: string, type = "text/csv"): void {
+  saveBlob(new Blob([text], { type }), fileName);
+}
+
+function saveBlob(blob: Blob, fileName: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

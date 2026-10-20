@@ -13,6 +13,15 @@ export const DOWNLOAD_ICON = `
     <path d="M4 16h12"/>
   </svg>`;
 
+/** Clockwise arrow: re-roll what is on screen. The mirror of ROLLBACK_ICON,
+ *  so "make it new" and "back to how it was" read as the pair they are. */
+export const REFRESH_ICON = `
+  <svg class="w-4 h-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+       stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M16 4v4h-4"/>
+    <path d="M15.5 8A6 6 0 1 0 16 11"/>
+  </svg>`;
+
 /** Counter-clockwise arrow: "back to how it was". */
 export const ROLLBACK_ICON = `
   <svg class="w-4 h-4 shrink-0" viewBox="0 0 20 20" fill="none" stroke="currentColor"

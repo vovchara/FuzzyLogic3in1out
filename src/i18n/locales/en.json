@@ -181,7 +181,21 @@
       "ap": "Aggregation Priority (AP)"
     },
     "legendRoute": "Route (RS)",
-    "legendFlow": "Data collection"
+    "legendFlow": "Data collection",
+    "telemetry": {
+      "import": "Import testbed CSV…",
+      "sample": "Get test CSV",
+      "loaded": "{{file}} — measured nodes: {{count}}",
+      "clear": "Remove measurements",
+      "legend": "Measured nodes",
+      "unknown": "CSV nodes missing from the field: {{ids}}",
+      "row": "Line {{line}}: {{reason}}",
+      "reasons": {
+        "columns": "expected 6 values",
+        "value": "invalid number"
+      },
+      "more": "…and {{count}} more rows with errors"
+    }
   },
   "training": {
     "title": "Genetic optimisation",
