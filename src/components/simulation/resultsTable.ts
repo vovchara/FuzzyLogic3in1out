@@ -3,10 +3,15 @@ import { getLang, t } from "../../i18n";
 import { formatOutput, formatValue, valueStep } from "../../utils/format";
 import type { Point, SimulationResult } from "../../simulation/types";
 import type { Unmount } from "../context";
-import { BASE_COLOR, ROLE_COLOR } from "./fieldPanel";
+import { BASE_COLOR, LIVE_COLOR, ROLE_COLOR } from "./fieldPanel";
 
 export interface ResultsTable {
-  update(result: SimulationResult, base: Point, selectedId: number | null): void;
+  update(
+    result: SimulationResult,
+    base: Point,
+    selectedId: number | null,
+    liveIds: ReadonlySet<number>,
+  ): void;
   unmount: Unmount;
 }
 
@@ -109,7 +114,8 @@ export function mountResultsTable(container: HTMLElement, opts: ResultsTableOpts
         <tr data-row-id="${r.node.id}"
             class="border-t border-graphite-100 cursor-pointer hover:bg-graphite-50
                    data-[selected=true]:bg-brand-50">
-          <td class="py-1.5 px-1 font-mono tabular-nums text-graphite-900 font-semibold">${r.node.id}</td>
+          <td class="py-1.5 px-1 font-mono tabular-nums text-graphite-900 font-semibold whitespace-nowrap"
+              data-cell="id">${r.node.id}</td>
           ${NUMERIC_COLUMNS.map((c) =>
             EDITABLE.has(c)
               ? `<td class="py-1 px-1 text-right">
@@ -117,7 +123,8 @@ export function mountResultsTable(container: HTMLElement, opts: ResultsTableOpts
                      min="${opts.ranges[c][0]}" max="${opts.ranges[c][1]}"
                      step="${c === "dat" ? 1 : valueStep(opts.ranges[c])}"
                      aria-label="${t(`simulation.columns.${c}`)}"
-                     class="field w-14 px-1 py-0.5 text-right font-mono tabular-nums text-sm" />
+                     class="field w-14 px-1 py-0.5 text-right font-mono tabular-nums text-sm
+                            disabled:bg-graphite-50 disabled:text-graphite-500" />
                  </td>`
               : `<td class="py-1.5 px-1 text-right font-mono tabular-nums text-graphite-800" data-cell="${c}"></td>`,
           ).join("")}
@@ -127,7 +134,12 @@ export function mountResultsTable(container: HTMLElement, opts: ResultsTableOpts
         .join("");
   }
 
-  function update(result: SimulationResult, base: Point, selectedId: number | null): void {
+  function update(
+    result: SimulationResult,
+    base: Point,
+    selectedId: number | null,
+    liveIds: ReadonlySet<number>,
+  ): void {
     // The language is part of the signature: the base row and the input
     // aria-labels bake t() strings in, so a switch rebuilds the rows the same
     // way a node-set change does.
@@ -144,6 +156,11 @@ export function mountResultsTable(container: HTMLElement, opts: ResultsTableOpts
     for (const r of result.nodes) {
       const row = q(tbody, `[data-row-id="${r.node.id}"]`);
       row.dataset.selected = String(r.node.id === selectedId);
+      const live = liveIds.has(r.node.id);
+      q(row, '[data-cell="id"]').innerHTML = live
+        ? `${r.node.id}<span class="inline-block w-1.5 h-1.5 rounded-full ml-1 align-middle"
+             style="background:${LIVE_COLOR}"></span>`
+        : String(r.node.id);
 
       const values: Record<ColumnId, number | null> = {
         x: r.node.x,
@@ -162,6 +179,10 @@ export function mountResultsTable(container: HTMLElement, opts: ResultsTableOpts
         const v = values[c];
         if (EDITABLE.has(c)) {
           const input = q<HTMLInputElement>(row, `[data-edit="${c}"]`);
+          // A measured node's energy belongs to the imported series: the cell
+          // is locked while the telemetry is loaded, or an edit would be
+          // silently overlaid right back.
+          input.disabled = c === "re" && live;
           if (document.activeElement !== input) {
             input.value = c === "dat" ? String(v) : formatValue(v!, opts.ranges[c]);
           }
