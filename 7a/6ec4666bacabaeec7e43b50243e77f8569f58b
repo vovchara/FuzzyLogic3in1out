@@ -1,0 +1,33 @@
+firmware/base/base.ino
+  s_a563c9a3b3f0ab::t_ef35fe1c110101 22-29
+  s_a563c9a3b3f0ab::t_2879cec1ab1ac5 110-113
+  s_a563c9a3b3f0ab::t_a6039f76e0fe18 74-88,92-93
+  s_a563c9a3b3f0ab::t_43284a061ed9d8 129-135
+firmware/README.md
+  s_a563c9a3b3f0ab::t_585c4ef7e97c7b 13-17
+  s_a563c9a3b3f0ab::t_10042d7c2539be 23
+  s_a563c9a3b3f0ab::t_ae39511ccfa88f 22,24-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.11",
+  "base_commit_sha": "7a6ec4666bacabaeec7e43b50243e77f8569f58b",
+  "prompts": {},
+  "sessions": {
+    "s_a563c9a3b3f0ab": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f49058e0-d222-43da-a910-dfb83e7024a8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Volodymyr M <vovchara@ukr.net>",
+      "token_usage": {
+        "input_tokens": 276,
+        "output_tokens": 136079,
+        "cache_creation_tokens": 578585,
+        "cache_read_tokens": 26424308
+      },
+      "billing_source": "subscription"
+    }
+  }
+}
