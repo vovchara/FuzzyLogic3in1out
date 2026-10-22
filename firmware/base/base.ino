@@ -19,6 +19,14 @@ constexpr char TELEMETRY_HEADER[] = "node_id,seq,voltage,rssi,t_tx_ms,t_rx_ms";
 constexpr uint8_t ESPNOW_CHANNEL = 1;
 constexpr uint8_t LED_PIN = 2;
 
+// External 10 mm indicator modules for showing the link live: green flashes on
+// every received packet, red lights up when a node's seq skips, i.e. a packet
+// was lost on the air. Active high.
+constexpr uint8_t RX_LED_PIN = 25;
+constexpr uint8_t LOSS_LED_PIN = 26;
+constexpr uint32_t RX_FLASH_MS = 30;
+constexpr uint32_t LOSS_FLASH_MS = 300;
+
 // --- Shared with firmware/node/node.ino: keep both copies byte-identical. ---
 // Filters out foreign ESP-NOW traffic on a desk full of 2.4 GHz devices.
 constexpr uint16_t PACKET_MAGIC = 0xF37A;
@@ -63,9 +71,26 @@ void onReceive(const esp_now_recv_info_t *info, const uint8_t *data, int len) {
   portEXIT_CRITICAL(&qMux);
 }
 
+// Last seq seen per node, to spot gaps. Only loop() touches these.
+uint32_t lastSeq[256];
+bool seenNode[256];
+uint32_t rxLedOffMs = 0;
+uint32_t lossLedOffMs = 0;
+
+// A seq at or below the last one means the node rebooted and restarted its
+// counter, which is not a loss.
+bool isGap(const TelemetryPacket &pkt) {
+  bool gap = seenNode[pkt.node_id] && pkt.seq > lastSeq[pkt.node_id] + 1;
+  seenNode[pkt.node_id] = true;
+  lastSeq[pkt.node_id] = pkt.seq;
+  return gap;
+}
+
 void setup() {
   Serial.begin(115200);
   pinMode(LED_PIN, OUTPUT);
+  pinMode(RX_LED_PIN, OUTPUT);
+  pinMode(LOSS_LED_PIN, OUTPUT);
 
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
@@ -82,6 +107,10 @@ void setup() {
 }
 
 void loop() {
+  uint32_t now = millis();
+  if (now >= rxLedOffMs) digitalWrite(RX_LED_PIN, LOW);
+  if (now >= lossLedOffMs) digitalWrite(LOSS_LED_PIN, LOW);
+
   while (true) {
     Received r;
     portENTER_CRITICAL(&qMux);
@@ -97,5 +126,12 @@ void loop() {
                   r.pkt.voltage_mv / 1000.0f, r.rssi, (unsigned long)r.pkt.t_tx_ms,
                   (unsigned long)r.t_rx_ms);
     digitalWrite(LED_PIN, !digitalRead(LED_PIN));
+
+    digitalWrite(RX_LED_PIN, HIGH);
+    rxLedOffMs = millis() + RX_FLASH_MS;
+    if (isGap(r.pkt)) {
+      digitalWrite(LOSS_LED_PIN, HIGH);
+      lossLedOffMs = millis() + LOSS_FLASH_MS;
+    }
   }
 }
