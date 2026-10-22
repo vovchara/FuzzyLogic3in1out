@@ -4,6 +4,7 @@ import type { AppShellCtx, Unmount } from "../context";
 import { mountFormulasModal } from "./formulasModal";
 import { mountLanguageSwitcher } from "./languageSwitcher";
 import { mountTabBar } from "./tabBar";
+import { mountSimulationScreen } from "../simulation/simulationScreen";
 import { mountWorkbench } from "../workbench/workbench";
 
 export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount {
@@ -28,7 +29,10 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount
         <div id="tabBar" class="max-w-[1400px] w-full mx-auto px-4"></div>
       </header>
 
-      <main id="activeTab" class="max-w-[1400px] w-full mx-auto px-4 py-4 max-lg:pb-24 flex-1"></main>
+      <main class="max-w-[1400px] w-full mx-auto px-4 py-4 max-lg:pb-24 flex-1">
+        <div id="workbenchView"></div>
+        <div id="simulationView" hidden></div>
+      </main>
       <div id="modalRoot"></div>
     </div>
   `;
@@ -53,23 +57,42 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount
   // back into data-i18n leaves the heading to applyI18n on a language switch;
   // document.title has no such hook and is refreshed explicitly.
   const headingEl = q(container, "[data-system-title]");
-  let titledSystemId = "";
+  let titledKey = "";
   function syncTitle(force = false): void {
-    const { activeSystemId } = ctx.store.getState();
-    if (activeSystemId === titledSystemId && !force) return;
-    const system = ctx.getSystem(activeSystemId);
-    titledSystemId = activeSystemId;
-    headingEl.dataset.i18n = system.descriptionKey;
-    headingEl.textContent = t(system.descriptionKey);
+    const { activeSystemId, view } = ctx.store.getState();
+    const key =
+      view === "simulation" ? "simulation.title" : ctx.getSystem(activeSystemId).descriptionKey;
+    if (key === titledKey && !force) return;
+    titledKey = key;
+    headingEl.dataset.i18n = key;
+    headingEl.textContent = t(key);
     document.title = t("app.name");
   }
+
+  const workbenchView = q(container, "#workbenchView");
+  const simulationView = q(container, "#simulationView");
+  const formulasBtn = q(container, "#showFormulasBtn");
+  function syncView(): void {
+    const { view } = ctx.store.getState();
+    workbenchView.hidden = view !== "workbench";
+    simulationView.hidden = view !== "simulation";
+    // The formulas modal documents the active controller's workbench; on the
+    // simulation screen there is no single active controller to document.
+    formulasBtn.hidden = view !== "workbench";
+  }
+
   syncTitle();
-  const titleUnsub = ctx.store.subscribe(() => syncTitle());
+  syncView();
+  const titleUnsub = ctx.store.subscribe(() => {
+    syncTitle();
+    syncView();
+  });
 
   const unmounts: Unmount[] = [];
   unmounts.push(mountLanguageSwitcher(q(container, "#langSwitcher")));
   unmounts.push(mountTabBar(q(container, "#tabBar"), ctx));
-  unmounts.push(mountWorkbench(q(container, "#activeTab"), ctx));
+  unmounts.push(mountWorkbench(workbenchView, ctx));
+  unmounts.push(mountSimulationScreen(simulationView, ctx));
   unmounts.push(mountFormulasModal(q(container, "#modalRoot"), ctx));
 
   applyI18n(container, t);

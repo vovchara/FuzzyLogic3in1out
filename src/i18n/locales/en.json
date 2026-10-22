@@ -98,7 +98,7 @@
       "name": "Aggregation",
       "description": "Data aggregation priority for WSN",
       "variables": {
-        "expandedEnergy": "Expanded Energy (EE)",
+        "expandedEnergy": "Expended Energy (EE)",
         "distanceToCH": "Distance to Cluster Head (Dis)",
         "packetCount": "Packets Sent (Dat)",
         "priority": "Aggregation Priority (AP)"
@@ -149,6 +149,39 @@
       "activeTerms": "active terms: {{n}}",
       "firedRules": "{{n}} of {{total}}"
     }
+  },
+  "simulation": {
+    "tab": "Simulation",
+    "title": "The three controllers working together on a virtual network field",
+    "nodeCount": "Node count",
+    "regenerate": "Regenerate",
+    "field": "Field",
+    "results": "Nodes",
+    "role": "Role",
+    "baseShort": "BS",
+    "legendBase": "Base station",
+    "roles": {
+      "head": "Cluster head",
+      "aggregator": "Aggregator",
+      "member": "Sensor"
+    },
+    "noHead": "No clustering rule fired — no cluster head elected",
+    "columns": {
+      "id": "#",
+      "x": "X",
+      "y": "Y",
+      "re": "Residual Energy (RE)",
+      "dat": "Packets Sent (Dat)",
+      "dist": "Distance to BS (d)",
+      "lq": "Link Quality (LQ)",
+      "pdr": "Packet Delivery Ratio (PDR)",
+      "td": "Transmission Delay (TD)",
+      "chs": "Cluster-Head Suitability (CHS)",
+      "ee": "Expended Energy (EE)",
+      "ap": "Aggregation Priority (AP)"
+    },
+    "legendRoute": "Route (RS)",
+    "legendFlow": "Data collection"
   },
   "training": {
     "title": "Genetic optimisation",

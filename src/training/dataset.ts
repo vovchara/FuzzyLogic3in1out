@@ -1,6 +1,7 @@
 import { createEngine, ruleStrength } from "../fuzzy/engine";
 import type { FuzzySystem, FuzzyVariable, MembershipShape } from "../fuzzy/types";
-import { gaussianNoise, mulberry32, type Sample } from "./genetic";
+import type { Sample } from "./genetic";
+import { gaussianNoise, mulberry32 } from "../utils/random";
 
 export type Cell = string | number | boolean | Date | null | undefined;
 

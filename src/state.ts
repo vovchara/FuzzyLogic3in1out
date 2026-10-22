@@ -1,8 +1,12 @@
 import type { FuzzyEvaluation } from "./fuzzy/types";
 import type { Language } from "./i18n";
 
+/** What the main area shows: one controller's workbench, or the field simulation. */
+export type AppView = "workbench" | "simulation";
+
 export interface AppState {
   language: Language;
+  view: AppView;
   activeSystemId: string;
   inputs: Record<string, number>;
   evaluation: FuzzyEvaluation | null;
