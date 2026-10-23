@@ -181,7 +181,21 @@
       "ap": "Priorytet agregacji (AP)"
     },
     "legendRoute": "Trasa (RS)",
-    "legendFlow": "Zbieranie danych"
+    "legendFlow": "Zbieranie danych",
+    "telemetry": {
+      "import": "Import CSV ze stanowiska…",
+      "sample": "Pobierz testowy CSV",
+      "loaded": "{{file}} — węzły z pomiarami: {{count}}",
+      "clear": "Usuń pomiary",
+      "legend": "Węzły z pomiarami",
+      "unknown": "W CSV są węzły, których nie ma na polu: {{ids}}",
+      "row": "Wiersz {{line}}: {{reason}}",
+      "reasons": {
+        "columns": "oczekiwano 6 wartości",
+        "value": "nieprawidłowa liczba"
+      },
+      "more": "…i jeszcze {{count}} wierszy z błędami"
+    }
   },
   "training": {
     "title": "Optymalizacja genetyczna",

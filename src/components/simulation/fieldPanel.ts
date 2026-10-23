@@ -17,8 +17,17 @@ export const ROLE_COLOR: Record<NodeRole, string> = {
 
 export const BASE_COLOR = "#11544e";
 
+/** Badge of a node whose energy came from an imported testbed series: a hue
+ *  none of the roles use, so the two codings cannot be read as one. */
+export const LIVE_COLOR = "#3d7ab8";
+
 export interface FieldPanel {
-  update(scenario: Scenario, result: SimulationResult, selectedId: number | null): void;
+  update(
+    scenario: Scenario,
+    result: SimulationResult,
+    selectedId: number | null,
+    liveIds: ReadonlySet<number>,
+  ): void;
   unmount: Unmount;
 }
 
@@ -79,7 +88,12 @@ export function mountFieldPanel(container: HTMLElement, opts: FieldPanelOpts): F
   const nodesG = svg.querySelector<SVGGElement>("[data-nodes]")!;
   const noHeadEl = container.querySelector<HTMLElement>("[data-no-head]")!;
 
-  function update(scenario: Scenario, result: SimulationResult, selectedId: number | null): void {
+  function update(
+    scenario: Scenario,
+    result: SimulationResult,
+    selectedId: number | null,
+    liveIds: ReadonlySet<number>,
+  ): void {
     const byId = new Map(scenario.nodes.map((n) => [n.id, n]));
     const head = result.headId !== null ? byId.get(result.headId) : undefined;
     const aggregator = result.aggregatorId !== null ? byId.get(result.aggregatorId) : undefined;
@@ -137,7 +151,14 @@ export function mountFieldPanel(container: HTMLElement, opts: FieldPanelOpts): F
 
     let markers = baseMarker(scenario.base.x, scenario.base.y);
     for (const r of result.nodes) {
-      markers += nodeMarker(r.node.x, r.node.y, r.node.id, r.role, r.node.id === selectedId);
+      markers += nodeMarker(
+        r.node.x,
+        r.node.y,
+        r.node.id,
+        r.role,
+        r.node.id === selectedId,
+        liveIds.has(r.node.id),
+      );
     }
     nodesG.innerHTML = markers;
 
@@ -275,13 +296,21 @@ function gridHtml(): string {
     ${ticks}`;
 }
 
-function nodeMarker(x: number, y: number, id: number, role: NodeRole, selected: boolean): string {
+function nodeMarker(
+  x: number,
+  y: number,
+  id: number,
+  role: NodeRole,
+  selected: boolean,
+  live: boolean,
+): string {
   return `
     <g transform="translate(${x} ${sy(y)})" data-node="${id}" data-fx="${x}" data-fy="${y}"
        class="cursor-grab">
       ${selected ? `<circle r="5.4" fill="none" stroke="#35c2ae" stroke-width="0.5" stroke-dasharray="1 1"></circle>` : ""}
       ${role === "head" ? `<circle r="4.4" fill="none" stroke="${ROLE_COLOR.head}" stroke-width="0.6" opacity="0.8"></circle>` : ""}
       <circle r="3" fill="${ROLE_COLOR[role]}" stroke="#ffffff" stroke-width="0.6"></circle>
+      ${live ? `<circle cx="2.3" cy="2.3" r="1.2" fill="${LIVE_COLOR}" stroke="#ffffff" stroke-width="0.5"></circle>` : ""}
       <text y="-4.6" text-anchor="middle" font-size="3.6" font-weight="600" fill="#434a52"
             stroke="#ffffff" stroke-width="0.9" paint-order="stroke">${id}</text>
     </g>`;
