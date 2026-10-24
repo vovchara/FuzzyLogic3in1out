@@ -1,19 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createEngine } from "../src/fuzzy/engine";
-import { aggregationSystem } from "../src/fuzzy/systems/aggregation";
-import { commCtrlSystem } from "../src/fuzzy/systems/commCtrl";
-import { routingSystem } from "../src/fuzzy/systems/routing";
-import { defaultChannel } from "../src/simulation/channel";
-import { runSimulation } from "../src/simulation/orchestrator";
-import { generateScenario } from "../src/simulation/scenario";
 import {
   TELEMETRY_HEADER,
   VOLTAGE_EMPTY,
   VOLTAGE_FULL,
-  applyTelemetry,
-  demoTelemetry,
   parseTelemetry,
-  pooledNoiseSigma,
 } from "../src/simulation/telemetry";
 
 /** A clean two-node capture: node 1 fresh and stable, node 2 drained and noisy. */
@@ -90,92 +80,18 @@ describe("telemetry parser", () => {
     expect(t.nodes[0].packets).toBe(2);
   });
 
+  it("skips the boot banner and replayed noise before the first header", () => {
+    const text = `b,3,10340,2,9680\n1,7,8.0,-60,200,900001\nrst:0x1 (POWERON_RESET)\nentry 0x4008059c\n${TELEMETRY_HEADER}\n1,1,8.0,-60,200,900001\n1,x,8.0,-60,400,900202`;
+    const t = parseTelemetry(text);
+    // Line numbers still count from the top of the file.
+    expect(t.errors).toEqual([{ line: 7, reason: "value" }]);
+    expect(t.nodes[0].packets).toBe(1);
+  });
+
   it("tolerates CRLF, blank lines and the header reprinted after a reset", () => {
     const text = `${TELEMETRY_HEADER}\r\n1,1,8.0,-60,200,900001\r\n\r\n${TELEMETRY_HEADER}\r\n1,2,8.0,-61,400,900202\r\n`;
     const t = parseTelemetry(text);
     expect(t.errors).toEqual([]);
     expect(t.nodes[0].packets).toBe(2);
-  });
-});
-
-describe("telemetry overlay", () => {
-  it("replaces the energy of matched nodes only and leaves the scenario intact", () => {
-    const s = generateScenario(3, 1);
-    const t = parseTelemetry("1,1,8.4,-60,0,0\n2,1,6.0,-70,0,0\n9,1,7.2,-65,0,0");
-    const overlay = applyTelemetry(s, t);
-    expect([...overlay.liveIds].sort()).toEqual([1, 2]);
-    expect(overlay.unknownIds).toEqual([9]);
-    const node = (id: number) => overlay.scenario.nodes.find((n) => n.id === id)!;
-    expect(node(1).re).toBe(1);
-    expect(node(2).re).toBe(0);
-    expect(node(1).x).toBe(s.nodes[0].x);
-    expect(node(1).dat).toBe(s.nodes[0].dat);
-    expect(node(3)).toEqual(s.nodes[2]);
-    // The base scenario is untouched: clearing the telemetry is not applying it.
-    expect(s.nodes.find((n) => n.id === 1)!.re).not.toBe(1);
-  });
-
-  it("round-trips the demo capture: parses cleanly onto the field it came from", () => {
-    const s = generateScenario(8, 42);
-    const demo = demoTelemetry(s);
-    expect(demo).toEqual(demoTelemetry(s));
-
-    const t = parseTelemetry(demo.csv);
-    expect(t.errors).toEqual([]);
-    expect(t.nodes.map((n) => n.nodeId)).toEqual([1, 2, 3]);
-    const overlay = applyTelemetry(s, t);
-    expect(overlay.unknownIds).toEqual([]);
-    expect(overlay.liveIds.size).toBe(3);
-
-    // The pack swap: the strongest board reports the drained battery, the
-    // weakest the fresh one, the third lands back on its scenario energy.
-    const byRe = [...s.nodes.slice(0, 3)].sort((a, b) => a.re - b.re);
-    // The file says what it will do before anyone opens it.
-    expect(demo.fileName).toBe(
-      `testbed-demo-drained-node${byRe[2].id}-fresh-node${byRe[0].id}.csv`,
-    );
-    for (const series of t.nodes) {
-      const expected =
-        series.nodeId === byRe[2].id
-          ? 0.125
-          : series.nodeId === byRe[0].id
-            ? 0.98
-            : s.nodes.find((n) => n.id === series.nodeId)!.re;
-      expect(series.re).toBeCloseTo(expected, 1);
-      expect(series.pdr).toBeGreaterThan(0);
-      expect(series.pdr).toBeLessThanOrEqual(1);
-      expect(series.noiseSigmaDb).not.toBeNull();
-    }
-    // The demo desk is noisier than the model's default σ.
-    expect(pooledNoiseSigma(t)!).toBeGreaterThan(defaultChannel.noiseSigmaDb);
-  });
-
-  it("the demo swap visibly changes the elected round, not just the badges", () => {
-    const engines = {
-      clustering: createEngine(commCtrlSystem),
-      aggregation: createEngine(aggregationSystem),
-      routing: createEngine(routingSystem),
-    };
-    const s = generateScenario(8, 42);
-    const before = runSimulation(s, engines);
-    const t = parseTelemetry(demoTelemetry(s).csv);
-    const after = runSimulation(applyTelemetry(s, t).scenario, engines, {
-      ...defaultChannel,
-      noiseSigmaDb: pooledNoiseSigma(t)!,
-    });
-    expect(after.headId).not.toBe(before.headId);
-  });
-
-  it("pools the channel σ as the median of per-node spreads", () => {
-    // Spreads: node 1 → 2 dB, node 2 → ~9.9 dB (the misbehaving board),
-    // node 3 → ~0.8 dB; the median keeps the outlier from dragging the model.
-    const t = parseTelemetry(
-      "1,1,8,-60,0,0\n1,2,8,-62,0,0\n1,3,8,-58,0,0\n" +
-        "2,1,8,-60,0,0\n2,2,8,-74,0,0\n" +
-        "3,1,8,-60,0,0\n3,2,8,-61,0,0\n3,3,8,-62,0,0\n3,4,8,-61,0,0",
-    );
-    expect(pooledNoiseSigma(t)).toBeCloseTo(2);
-    expect(pooledNoiseSigma(parseTelemetry("1,1,8.0,-60,0,0"))).toBeNull();
-    expect(pooledNoiseSigma(parseTelemetry(""))).toBeNull();
   });
 });

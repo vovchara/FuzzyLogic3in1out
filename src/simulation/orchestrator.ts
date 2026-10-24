@@ -1,17 +1,9 @@
 import type { FuzzyEngine } from "../fuzzy/engine";
 import type { FuzzySystem, FuzzyVariable } from "../fuzzy/types";
-import {
-  defaultChannel,
-  delayMs,
-  expendedEnergy,
-  linkNoise,
-  linkRssi,
-  lqFromRssi,
-  pdrFromRssi,
-  type ChannelParams,
-} from "./channel";
+import { defaultChannel, expendedEnergy, type ChannelParams } from "./channel";
+import { modelLinks, type Link, type LinkSource } from "./links";
 import { distance } from "./scenario";
-import type { NodeResult, Point, RouteHop, Scenario, SimNode, SimulationResult } from "./types";
+import type { NodeResult, RouteHop, Scenario, SimNode, SimulationResult } from "./types";
 
 /**
  * The three controllers as the simulation chains them: clustering elects the
@@ -25,15 +17,6 @@ export interface SimEngines {
   readonly routing: FuzzyEngine;
 }
 
-/** The base station's id in link-noise keys; node ids are 1-based. */
-const BASE_ID = 0;
-
-interface Link {
-  readonly dist: number;
-  readonly lq: number;
-  readonly pdr: number;
-}
-
 function clampTo(v: FuzzyVariable, value: number): number {
   return Math.max(v.range[0], Math.min(v.range[1], value));
 }
@@ -45,19 +28,19 @@ export function inputVar(system: FuzzySystem, id: string): FuzzyVariable {
   return v;
 }
 
+/**
+ * `links` decides where link quality, delivery and delay come from; by default
+ * the channel model on the virtual topology. Distances, Dis and EE always come
+ * from the coordinates.
+ */
 export function runSimulation(
   scenario: Scenario,
   engines: SimEngines,
   channel: ChannelParams = defaultChannel,
+  links: LinkSource = modelLinks(scenario, channel),
 ): SimulationResult {
-  const { nodes, base, seed } = scenario;
+  const { nodes, base } = scenario;
   const fieldDiag = Math.SQRT2 * scenario.field;
-
-  function link(from: Point, fromId: number, to: Point, toId: number): Link {
-    const dist = distance(from, to);
-    const rssi = linkRssi(dist, channel, linkNoise(seed, fromId, toId) * channel.noiseSigmaDb);
-    return { dist, lq: lqFromRssi(rssi, channel), pdr: pdrFromRssi(rssi, channel) };
-  }
 
   // --- Clustering: score every node's own link to the base station. ---------
   const tdVar = inputVar(engines.clustering.system, "TD");
@@ -66,12 +49,15 @@ export function runSimulation(
   const baseLinks = new Map<number, Link>();
   const chsById = new Map<number, number | null>();
   const tdById = new Map<number, number>();
+  const tdMeasured = new Set<number>();
 
   for (const node of nodes) {
-    const l = link(node, node.id, base, BASE_ID);
+    const l = links.link(node, "base");
     baseLinks.set(node.id, l);
-    const td = clampTo(tdVar, delayMs(l.pdr, node.dat / datFull, channel));
+    const delay = links.baseDelay(node, l, node.dat / datFull);
+    const td = clampTo(tdVar, delay.value);
     tdById.set(node.id, td);
+    if (delay.measured) tdMeasured.add(node.id);
     const ev = engines.clustering.evaluate({ En: node.re, PDR: l.pdr, TD: td });
     chsById.set(node.id, ev.fired ? ev.output : null);
   }
@@ -136,6 +122,7 @@ export function runSimulation(
   const reVar = inputVar(engines.routing.system, "RE");
   const distVar = inputVar(engines.routing.system, "Dist");
   const route: RouteHop[] = [];
+  const routeLinks: Link[] = [];
   const visited = new Set<number>();
 
   function hopScore(re: number, l: Link): number | null {
@@ -152,15 +139,17 @@ export function runSimulation(
     let guard = nodes.length + 1;
     while (guard-- > 0) {
       const currentToBase = distance(current, base);
-      let best: { to: SimNode | null; rs: number } | null = null;
+      const directLink = links.link(current, "base");
+      let best: { to: SimNode | null; rs: number; link: Link } | null = null;
 
-      const direct = hopScore(1, link(current, current.id, base, BASE_ID));
-      if (direct !== null) best = { to: null, rs: direct };
+      const direct = hopScore(1, directLink);
+      if (direct !== null) best = { to: null, rs: direct, link: directLink };
       for (const node of nodes) {
         if (node.id === current.id || node.id === aggregatorId || visited.has(node.id)) continue;
         if (distance(node, base) >= currentToBase) continue;
-        const rs = hopScore(node.re, link(current, current.id, node, node.id));
-        if (rs !== null && (!best || rs > best.rs)) best = { to: node, rs };
+        const l = links.link(current, node);
+        const rs = hopScore(node.re, l);
+        if (rs !== null && (!best || rs > best.rs)) best = { to: node, rs, link: l };
       }
 
       // Nothing fired for any candidate: fall back to the direct link so the
@@ -169,6 +158,7 @@ export function runSimulation(
         ? { from: current.id, to: best.to?.id ?? null, rs: best.rs }
         : { from: current.id, to: null, rs: null };
       route.push(hop);
+      routeLinks.push(best?.link ?? directLink);
       if (hop.to === null) break;
       visited.add(hop.to);
       current = nodes.find((n) => n.id === hop.to)!;
@@ -191,8 +181,9 @@ export function runSimulation(
       ee: eeById.get(node.id) ?? null,
       ap: apById.get(node.id) ?? null,
       role,
+      measured: { link: l.measured, td: tdMeasured.has(node.id) },
     };
   });
 
-  return { nodes: results, headId, aggregatorId, route };
+  return { nodes: results, headId, aggregatorId, route, routeLinks };
 }

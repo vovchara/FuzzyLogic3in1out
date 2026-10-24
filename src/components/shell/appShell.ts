@@ -4,6 +4,7 @@ import type { AppShellCtx, Unmount } from "../context";
 import { mountFormulasModal } from "./formulasModal";
 import { mountLanguageSwitcher } from "./languageSwitcher";
 import { mountTabBar } from "./tabBar";
+import { mountExperimentScreen } from "../experiment/experimentScreen";
 import { mountSimulationScreen } from "../simulation/simulationScreen";
 import { mountWorkbench } from "../workbench/workbench";
 
@@ -32,6 +33,7 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount
       <main class="max-w-[1400px] w-full mx-auto px-4 py-4 max-lg:pb-24 flex-1">
         <div id="workbenchView"></div>
         <div id="simulationView" hidden></div>
+        <div id="experimentView" hidden></div>
       </main>
       <div id="modalRoot"></div>
     </div>
@@ -61,7 +63,11 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount
   function syncTitle(force = false): void {
     const { activeSystemId, view } = ctx.store.getState();
     const key =
-      view === "simulation" ? "simulation.title" : ctx.getSystem(activeSystemId).descriptionKey;
+      view === "simulation"
+        ? "simulation.title"
+        : view === "experiment"
+          ? "experiment.title"
+          : ctx.getSystem(activeSystemId).descriptionKey;
     if (key === titledKey && !force) return;
     titledKey = key;
     headingEl.dataset.i18n = key;
@@ -71,13 +77,16 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount
 
   const workbenchView = q(container, "#workbenchView");
   const simulationView = q(container, "#simulationView");
+  const experimentView = q(container, "#experimentView");
   const formulasBtn = q(container, "#showFormulasBtn");
   function syncView(): void {
     const { view } = ctx.store.getState();
     workbenchView.hidden = view !== "workbench";
     simulationView.hidden = view !== "simulation";
+    experimentView.hidden = view !== "experiment";
     // The formulas modal documents the active controller's workbench; on the
-    // simulation screen there is no single active controller to document.
+    // simulation and experiment screens there is no single active controller
+    // to document.
     formulasBtn.hidden = view !== "workbench";
   }
 
@@ -93,6 +102,7 @@ export function mountAppShell(container: HTMLElement, ctx: AppShellCtx): Unmount
   unmounts.push(mountTabBar(q(container, "#tabBar"), ctx));
   unmounts.push(mountWorkbench(workbenchView, ctx));
   unmounts.push(mountSimulationScreen(simulationView, ctx));
+  unmounts.push(mountExperimentScreen(experimentView, ctx));
   unmounts.push(mountFormulasModal(q(container, "#modalRoot"), ctx));
 
   applyI18n(container, t);

@@ -1,8 +1,11 @@
 import type { FuzzyEvaluation } from "./fuzzy/types";
 import type { Language } from "./i18n";
 
-/** What the main area shows: one controller's workbench, or the field simulation. */
-export type AppView = "workbench" | "simulation";
+/**
+ * What the main area shows: one controller's workbench, the virtual field
+ * simulation, or a testbed experiment.
+ */
+export type AppView = "workbench" | "simulation" | "experiment";
 
 export interface AppState {
   language: Language;
