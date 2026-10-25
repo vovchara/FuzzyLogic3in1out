@@ -151,10 +151,6 @@
     }
   },
   "simulation": {
-    "tab": "Symulacja",
-    "title": "Symulacja współpracy trzech kontrolerów na wirtualnym polu sieci",
-    "nodeCount": "Liczba węzłów",
-    "regenerate": "Wygeneruj ponownie",
     "field": "Pole",
     "results": "Węzły",
     "role": "Rola",

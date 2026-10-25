@@ -126,7 +126,6 @@ export function mountExperimentScreen(container: HTMLElement, ctx: AppShellCtx):
   let layoutErrors: readonly LayoutError[] = [];
 
   const field = mountFieldPanel(q(container, "#expField"), {
-    autoZoom: true,
     onSelect(id) {
       selectedId = selectedId === id ? null : id;
       render();

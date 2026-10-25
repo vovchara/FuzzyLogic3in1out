@@ -27,18 +27,8 @@ export interface FieldPanel {
 }
 
 export interface FieldPanelOpts {
-  /**
-   * Fired while dragging; `done` marks the drop, which is the moment to
-   * persist. Without it the field is read-only: markers select, never move.
-   */
-  onMove?(target: number | "base", x: number, y: number, done: boolean): void;
+  /** A tap on a node selects it; a tap on empty field clears the selection. */
   onSelect(id: number | null): void;
-  /**
-   * Draw only the square around the base station and the nodes instead of
-   * the whole field. The scenario keeps its field: this is a view, it changes
-   * nothing the controllers compute.
-   */
-  autoZoom?: boolean;
 }
 
 /** A square part of the field, in metres, that the panel draws. */
@@ -48,17 +38,15 @@ export interface FieldWindow {
   readonly size: number;
 }
 
-/** A tap that travelled less than this (field metres) is a selection, not a drag. */
-const CLICK_SLOP = 0.8;
-
 /** Margin around the field in the viewBox, so edge markers, node labels and
  *  the axis ticks (the three-digit "100" included) stay whole. */
 const PAD = 8;
 
 /**
  * The drawing is always VIEW units wide, whatever the field's size in metres:
- * markers and labels keep their size on screen, and a measured layout of 40 m
- * fills the panel just as the 100 m virtual field does.
+ * markers and labels keep their size on screen. The panel draws only the
+ * square around the base station and the nodes (see zoomWindow): the scenario
+ * keeps its field, so the zoom changes nothing the controllers compute.
  */
 const VIEW = FIELD_SIZE;
 
@@ -68,7 +56,6 @@ const NODE_RADIUS = 3;
 const BASE_RADIUS = 3 * Math.SQRT2;
 
 export function mountFieldPanel(container: HTMLElement, opts: FieldPanelOpts): FieldPanel {
-  const readOnly = opts.onMove === undefined;
   // Metres to view units; set from the drawn window on every update.
   let win: FieldWindow = { x0: 0, y0: 0, size: FIELD_SIZE };
   let scale = 1;
@@ -83,7 +70,7 @@ export function mountFieldPanel(container: HTMLElement, opts: FieldPanelOpts): F
     <h2 class="card-title" data-i18n="simulation.field"></h2>
     <svg viewBox="${-PAD} ${-PAD} ${VIEW + 2 * PAD} ${VIEW + 2 * PAD}" data-svg role="img"
          data-i18n-aria-label="simulation.field"
-         class="w-full h-auto aspect-square touch-none select-none mt-3 rounded-md">
+         class="w-full h-auto aspect-square select-none mt-3 rounded-md">
       <defs>
         <marker id="sim-arrow" viewBox="0 0 6 6" refX="5" refY="3"
                 markerWidth="5" markerHeight="5" orient="auto-start-reverse">
@@ -110,9 +97,7 @@ export function mountFieldPanel(container: HTMLElement, opts: FieldPanelOpts): F
   const noHeadEl = container.querySelector<HTMLElement>("[data-no-head]")!;
 
   function update(scenario: Scenario, result: SimulationResult, selectedId: number | null): void {
-    win = opts.autoZoom
-      ? zoomWindow([scenario.base, ...scenario.nodes], scenario.field)
-      : { x0: 0, y0: 0, size: scenario.field };
+    win = zoomWindow([scenario.base, ...scenario.nodes], scenario.field);
     const key = `${win.x0}|${win.y0}|${win.size}`;
     if (key !== gridKey) {
       gridKey = key;
@@ -174,106 +159,19 @@ export function mountFieldPanel(container: HTMLElement, opts: FieldPanelOpts): F
     }
     routeG.innerHTML = route;
 
-    let markers = baseMarker(sx(scenario.base.x), sy(scenario.base.y), scenario.base, readOnly);
+    let markers = baseMarker(sx(scenario.base.x), sy(scenario.base.y));
     for (const r of result.nodes) {
-      markers += nodeMarker(
-        sx(r.node.x),
-        sy(r.node.y),
-        r.node,
-        readOnly,
-        r.role,
-        r.node.id === selectedId,
-      );
+      markers += nodeMarker(sx(r.node.x), sy(r.node.y), r.node.id, r.role, r.node.id === selectedId);
     }
     nodesG.innerHTML = markers;
 
     noHeadEl.hidden = result.headId !== null || scenario.nodes.length === 0;
   }
 
-  // One drag at a time, owned by one pointer: a second finger (or a second
-  // mouse button) must not hijack or jitter the marker being dragged. The grab
-  // offset keeps the marker under the finger where it was grabbed instead of
-  // snapping its centre to the pointer.
-  interface Drag {
-    pointerId: number;
-    target: number | "base";
-    startX: number;
-    startY: number;
-    offsetX: number;
-    offsetY: number;
-    lastX: number;
-    lastY: number;
-    moved: boolean;
-  }
-  let drag: Drag | null = null;
-
-  function toField(e: PointerEvent): { x: number; y: number } {
-    const r = svg.getBoundingClientRect();
-    const span = VIEW + 2 * PAD;
-    return {
-      x: win.x0 + (((e.clientX - r.left) / r.width) * span - PAD) / scale,
-      y: win.y0 + (VIEW - (((e.clientY - r.top) / r.height) * span - PAD)) / scale,
-    };
-  }
-
   svg.addEventListener("pointerdown", (e) => {
-    if (drag || e.button !== 0) return;
-    const marker = (e.target as Element).closest("[data-node],[data-base]");
-    if (!marker) {
-      opts.onSelect(null);
-      return;
-    }
-    if (readOnly) {
-      if (marker.hasAttribute("data-node")) opts.onSelect(Number(marker.getAttribute("data-node")));
-      return;
-    }
-    const p = toField(e);
-    const fx = Number(marker.getAttribute("data-fx"));
-    const fy = Number(marker.getAttribute("data-fy"));
-    drag = {
-      pointerId: e.pointerId,
-      target: marker.hasAttribute("data-base") ? "base" : Number(marker.getAttribute("data-node")),
-      startX: p.x,
-      startY: p.y,
-      offsetX: fx - p.x,
-      offsetY: fy - p.y,
-      lastX: fx,
-      lastY: fy,
-      moved: false,
-    };
-    svg.setPointerCapture(e.pointerId);
-    e.preventDefault();
-  });
-
-  svg.addEventListener("pointermove", (e) => {
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    const p = toField(e);
-    if (!drag.moved && Math.hypot(p.x - drag.startX, p.y - drag.startY) < CLICK_SLOP) return;
-    drag.moved = true;
-    drag.lastX = p.x + drag.offsetX;
-    drag.lastY = p.y + drag.offsetY;
-    opts.onMove?.(drag.target, drag.lastX, drag.lastY, false);
-  });
-
-  svg.addEventListener("pointerup", (e) => {
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    const d = drag;
-    drag = null;
-    if (d.moved) {
-      const p = toField(e);
-      opts.onMove?.(d.target, p.x + d.offsetX, p.y + d.offsetY, true);
-    } else if (d.target !== "base") {
-      opts.onSelect(d.target);
-    }
-  });
-
-  // A cancelled gesture (system swipe, palm rejection) still drops the marker
-  // where it last was, so the drawn position and the stored one cannot diverge.
-  svg.addEventListener("pointercancel", (e) => {
-    if (!drag || e.pointerId !== drag.pointerId) return;
-    const d = drag;
-    drag = null;
-    if (d.moved) opts.onMove?.(d.target, d.lastX, d.lastY, true);
+    if (e.button !== 0) return;
+    const marker = (e.target as Element).closest("[data-node]");
+    opts.onSelect(marker ? Number(marker.getAttribute("data-node")) : null);
   });
 
   return { update, unmount: () => {} };
@@ -363,33 +261,21 @@ function gridHtml(win: FieldWindow): string {
     ${ticks}`;
 }
 
-/**
- * Markers take their position in view units and carry the field coordinates
- * in data-fx/fy, which is where a drag starts from.
- */
-function nodeMarker(
-  vx: number,
-  vy: number,
-  node: Point & { readonly id: number },
-  readOnly: boolean,
-  role: NodeRole,
-  selected: boolean,
-): string {
+/** Markers take their position in view units. */
+function nodeMarker(vx: number, vy: number, id: number, role: NodeRole, selected: boolean): string {
   return `
-    <g transform="translate(${vx} ${vy})" data-node="${node.id}" data-fx="${node.x}" data-fy="${node.y}"
-       class="${readOnly ? "cursor-pointer" : "cursor-grab"}">
+    <g transform="translate(${vx} ${vy})" data-node="${id}" class="cursor-pointer">
       ${selected ? `<circle r="5.4" fill="none" stroke="#35c2ae" stroke-width="0.5" stroke-dasharray="1 1"></circle>` : ""}
       ${role === "head" ? `<circle r="4.4" fill="none" stroke="${ROLE_COLOR.head}" stroke-width="0.6" opacity="0.8"></circle>` : ""}
       <circle r="3" fill="${ROLE_COLOR[role]}" stroke="#ffffff" stroke-width="0.6"></circle>
       <text y="-4.6" text-anchor="middle" font-size="3.6" font-weight="600" fill="#434a52"
-            stroke="#ffffff" stroke-width="0.9" paint-order="stroke">${node.id}</text>
+            stroke="#ffffff" stroke-width="0.9" paint-order="stroke">${id}</text>
     </g>`;
 }
 
-function baseMarker(vx: number, vy: number, base: Point, readOnly: boolean): string {
+function baseMarker(vx: number, vy: number): string {
   return `
-    <g transform="translate(${vx} ${vy})" data-base data-fx="${base.x}" data-fy="${base.y}"
-       class="${readOnly ? "" : "cursor-grab"}">
+    <g transform="translate(${vx} ${vy})" data-base>
       <rect x="-3" y="-3" width="6" height="6" transform="rotate(45)"
             fill="${BASE_COLOR}" stroke="#ffffff" stroke-width="0.6"></rect>
       <text y="-5.6" text-anchor="middle" font-size="3.6" font-weight="600" fill="#434a52"

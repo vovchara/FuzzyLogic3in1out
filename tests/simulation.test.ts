@@ -13,15 +13,7 @@ import {
   pdrFromRssi,
 } from "../src/simulation/channel";
 import { runSimulation, type SimEngines } from "../src/simulation/orchestrator";
-import {
-  FIELD_SIZE,
-  distance,
-  generateScenario,
-  moveBase,
-  moveNode,
-  parseScenario,
-  updateNode,
-} from "../src/simulation/scenario";
+import { FIELD_SIZE, distance, generateScenario } from "../src/simulation/scenario";
 import type { FuzzyEngine } from "../src/fuzzy/engine";
 import type { FuzzySystem } from "../src/fuzzy/types";
 import type { Scenario, SimNode } from "../src/simulation/types";
@@ -156,58 +148,6 @@ describe("scenario generation", () => {
       expect(n.re).toBeLessThanOrEqual(1);
     }
     expect(generateScenario(10, 124)).not.toEqual(a);
-  });
-
-  it("updates a node's energy and traffic without touching the rest", () => {
-    const s = generateScenario(3, 1);
-    const edited = updateNode(s, 2, { re: 0.05, dat: 200 });
-    expect(edited.nodes.find((n) => n.id === 2)).toMatchObject({ re: 0.05, dat: 200 });
-    const untouched = edited.nodes.find((n) => n.id === 2)!;
-    const original = s.nodes.find((n) => n.id === 2)!;
-    expect(untouched.x).toBe(original.x);
-    expect(untouched.y).toBe(original.y);
-    expect(edited.nodes.find((n) => n.id === 1)).toEqual(s.nodes.find((n) => n.id === 1));
-  });
-
-  it("parses a stored scenario back equal to the generated one", () => {
-    const s = generateScenario(5, 42);
-    expect(parseScenario(JSON.parse(JSON.stringify(s)))).toEqual(s);
-  });
-
-  it("rejects structurally broken stored scenarios", () => {
-    const s = generateScenario(3, 1);
-    expect(parseScenario(null)).toBeNull();
-    expect(parseScenario({ ...s, field: 200 })).toBeNull();
-    expect(parseScenario({ ...s, nodes: [] })).toBeNull();
-    expect(parseScenario({ ...s, base: { x: 1, y: "a" } })).toBeNull();
-    const dup = { ...s, nodes: [s.nodes[0], { ...s.nodes[1], id: s.nodes[0].id }, s.nodes[2]] };
-    expect(parseScenario(dup)).toBeNull();
-    const fractional = { ...s, nodes: [{ ...s.nodes[0], id: 1.5 }, s.nodes[1], s.nodes[2]] };
-    expect(parseScenario(fractional)).toBeNull();
-  });
-
-  it("sorts nodes by id and clamps drifted values back into range", () => {
-    const s = generateScenario(3, 1);
-    const messy = {
-      ...s,
-      nodes: [
-        { id: 3, x: 500, y: -4, re: 7, dat: 1e9 },
-        { ...s.nodes[0], id: 1 },
-        { ...s.nodes[1], id: 2, dat: 33.7 },
-      ],
-    };
-    const parsed = parseScenario(messy)!;
-    expect(parsed.nodes.map((n) => n.id)).toEqual([1, 2, 3]);
-    expect(parsed.nodes[2]).toMatchObject({ x: FIELD_SIZE, y: 0, re: 1, dat: 240 });
-    expect(parsed.nodes[1].dat).toBe(34);
-  });
-
-  it("moves clamp to the field and leave other nodes alone", () => {
-    const s = generateScenario(3, 1);
-    const moved = moveNode(s, 2, -10, 250);
-    expect(moved.nodes.find((n) => n.id === 2)).toMatchObject({ x: 0, y: FIELD_SIZE });
-    expect(moved.nodes.find((n) => n.id === 1)).toEqual(s.nodes.find((n) => n.id === 1));
-    expect(moveBase(s, 500, -1).base).toEqual({ x: FIELD_SIZE, y: 0 });
   });
 });
 

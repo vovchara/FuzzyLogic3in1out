@@ -1,6 +1,6 @@
 import { q } from "../../dom";
 import { getLang, t } from "../../i18n";
-import { formatOutput, formatValue, valueStep } from "../../utils/format";
+import { formatOutput, formatValue } from "../../utils/format";
 import type { Point, SimulationResult } from "../../simulation/types";
 import type { Unmount } from "../context";
 import { BASE_COLOR, MEASURED_COLOR, ROLE_COLOR } from "./fieldPanel";
@@ -10,18 +10,11 @@ export interface ResultsTable {
   unmount: Unmount;
 }
 
-/** The two scenario values dragging cannot change; everything else is derived. */
-export type EditableField = "re" | "dat";
-
 /** Where a cell's value came from, for a table that mixes the two. */
 export type CellSource = "measured" | "model";
 
 export interface ResultsTableOpts {
   onSelect(id: number): void;
-  /** Without it the table is read-only: RE and Dat are plain cells. */
-  onEdit?(id: number, field: EditableField, value: number): void;
-  /** Fired when an editable cell loses focus, so the owner can re-render it. */
-  onCommit?(): void;
   /** Domain of every numeric column, shown in the header and used to format. */
   ranges: Readonly<Record<ControllerColumnId, readonly [number, number]>>;
   /** The columns after the controller ones; none by default. */
@@ -51,8 +44,6 @@ type ControllerColumnId = (typeof NUMERIC_COLUMNS)[number];
 export type ExtraColumnId = "sigma" | "packets";
 export type ColumnId = ControllerColumnId | ExtraColumnId;
 
-const EDITABLE: ReadonlySet<ColumnId> = new Set(["re", "dat"]);
-
 /**
  * The label's uppercase styling would turn σ into Σ, so the notation sits
  * outside the localised name, exempt from the transform.
@@ -68,7 +59,6 @@ const SOURCE_STYLE: Record<CellSource, string> = {
 const EMPTY = "—";
 
 export function mountResultsTable(container: HTMLElement, opts: ResultsTableOpts): ResultsTable {
-  const editable: ReadonlySet<ColumnId> = opts.onEdit ? EDITABLE : new Set();
   const columns: readonly ColumnId[] = [...NUMERIC_COLUMNS, ...(opts.extraColumns ?? [])];
   const rangeOf = (c: ColumnId) => (isControllerColumn(c) ? opts.ranges[c] : null);
 
@@ -103,32 +93,12 @@ export function mountResultsTable(container: HTMLElement, opts: ResultsTableOpts
   const tbody = q(container, "[data-rows]");
 
   tbody.addEventListener("click", (e) => {
-    // A click into an editable cell is editing, not row selection.
-    if ((e.target as Element).closest("input")) return;
     const row = (e.target as Element).closest<HTMLElement>("[data-row-id]");
     if (row) opts.onSelect(Number(row.dataset.rowId));
   });
 
-  // While an input is focused, patching skips it to protect the caret, so a
-  // raw or out-of-range entry can linger on screen; once the focus leaves, a
-  // re-render writes back the clamped, formatted value the simulation used.
-  tbody.addEventListener("focusout", (e) => {
-    if ((e.target as Element).matches("[data-edit]")) opts.onCommit?.();
-  });
-
-  tbody.addEventListener("input", (e) => {
-    const input = (e.target as Element).closest<HTMLInputElement>("[data-edit]");
-    if (!input) return;
-    const field = input.dataset.edit as EditableField;
-    const parsed = Number.parseFloat(input.value);
-    if (!Number.isFinite(parsed)) return;
-    const [lo, hi] = opts.ranges[field];
-    const clamped = Math.max(lo, Math.min(hi, field === "dat" ? Math.round(parsed) : parsed));
-    opts.onEdit?.(Number(input.closest<HTMLElement>("[data-row-id]")!.dataset.rowId), field, clamped);
-  });
-
-  // Rows are built once per node set and then patched in place: rebuilding the
-  // tbody on every recompute would steal the focus from the cell being edited.
+  // Rows are built once per node set and then patched in place, so a new
+  // selection only rewrites values instead of the whole tbody.
   let structure = "";
 
   function buildRows(result: SimulationResult): void {
@@ -152,17 +122,9 @@ export function mountResultsTable(container: HTMLElement, opts: ResultsTableOpts
           <td class="py-1.5 pl-1" data-cell="role"></td>
           <td class="py-1.5 px-1 font-mono tabular-nums text-graphite-900 font-semibold whitespace-nowrap"
               data-cell="id">${r.node.id}</td>
-          ${columns.map((c) =>
-            editable.has(c) && isControllerColumn(c)
-              ? `<td class="py-1 px-1 text-right">
-                   <input type="number" data-edit="${c}"
-                     min="${opts.ranges[c][0]}" max="${opts.ranges[c][1]}"
-                     step="${c === "dat" ? 1 : valueStep(opts.ranges[c])}"
-                     aria-label="${t(`simulation.columns.${c}`)}"
-                     class="field w-14 px-1 py-0.5 text-right font-mono tabular-nums text-sm" />
-                 </td>`
-              : `<td class="py-1.5 px-1 text-right font-mono tabular-nums text-graphite-800
-                           ${OUTPUTS.has(c) ? `${OUTPUT_TINT} font-semibold` : ""}" data-cell="${c}"></td>`,
+          ${columns.map((c) => `
+            <td class="py-1.5 px-1 text-right font-mono tabular-nums text-graphite-800
+                       ${OUTPUTS.has(c) ? `${OUTPUT_TINT} font-semibold` : ""}" data-cell="${c}"></td>`,
           ).join("")}
         </tr>`,
         )
@@ -170,9 +132,8 @@ export function mountResultsTable(container: HTMLElement, opts: ResultsTableOpts
   }
 
   function update(result: SimulationResult, base: Point, selectedId: number | null): void {
-    // The language is part of the signature: the base row and the input
-    // aria-labels bake t() strings in, so a switch rebuilds the rows the same
-    // way a node-set change does.
+    // The language is part of the signature: the base row bakes t() strings
+    // in, so a switch rebuilds the rows the same way a node-set change does.
     const sig = `${getLang()}|${result.nodes.map((r) => r.node.id).join(",")}`;
     if (sig !== structure) {
       structure = sig;
@@ -212,25 +173,18 @@ export function mountResultsTable(container: HTMLElement, opts: ResultsTableOpts
           continue;
         }
         const v = values[c];
-        if (editable.has(c)) {
-          const input = q<HTMLInputElement>(row, `[data-edit="${c}"]`);
-          if (document.activeElement !== input) {
-            input.value = c === "dat" ? String(v) : formatValue(v!, opts.ranges[c]);
-          }
-        } else {
-          // CHS and AP are controller answers, so they are written the way the
-          // workbench writes a defuzzified result: always two decimals.
-          const cell = q(row, `[data-cell="${c}"]`);
-          cell.textContent =
-            v === null
-              ? EMPTY
-              : c === "chs" || c === "ap"
-                ? formatOutput(v)
-                : c === "dat"
-                  ? String(v)
-                  : formatValue(v, opts.ranges[c]);
-          cell.setAttribute("style", sourceStyle(opts.source?.(r.node.id, c) ?? null));
-        }
+        // CHS and AP are controller answers, so they are written the way the
+        // workbench writes a defuzzified result: always two decimals.
+        const cell = q(row, `[data-cell="${c}"]`);
+        cell.textContent =
+          v === null
+            ? EMPTY
+            : c === "chs" || c === "ap"
+              ? formatOutput(v)
+              : c === "dat"
+                ? String(v)
+                : formatValue(v, opts.ranges[c]);
+        cell.setAttribute("style", sourceStyle(opts.source?.(r.node.id, c) ?? null));
       }
 
       q(row, '[data-cell="role"]').innerHTML = roleIcon(
