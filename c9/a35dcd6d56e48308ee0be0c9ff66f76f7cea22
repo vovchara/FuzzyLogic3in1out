@@ -1,0 +1,38 @@
+src/components/shell/appShell.ts
+  s_2967143c711fbb::t_f7642ff1a0f714 64,80
+src/app.ts
+  s_2967143c711fbb::t_f7642ff1a0f714 156
+tests/simulation.test.ts
+  s_2967143c711fbb::t_634251649946c7 16
+src/components/simulation/resultsTable.ts
+  s_2967143c711fbb::t_c29148126fb925 3,125-127,176-187
+  s_2967143c711fbb::t_cbfb68ced2b3ef 100-101,135-136
+src/components/simulation/fieldPanel.ts
+  s_2967143c711fbb::t_df64bac252ef3c 47-49,73,100
+  s_2967143c711fbb::t_6e7ae38b865e52 30,162,164,172-174,264-265,267,272,276,278
+src/state.ts
+  s_2967143c711fbb::t_f7642ff1a0f714 5-6,8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.11",
+  "base_commit_sha": "c9a35dcd6d56e48308ee0be0c9ff66f76f7cea22",
+  "prompts": {},
+  "sessions": {
+    "s_2967143c711fbb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4d6ea982-d73a-4390-889d-5d76e4dfedff",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Volodymyr M <vovchara@ukr.net>",
+      "token_usage": {
+        "input_tokens": 60,
+        "output_tokens": 19767,
+        "cache_creation_tokens": 340376,
+        "cache_read_tokens": 10212438
+      },
+      "billing_source": "subscription"
+    }
+  }
+}
