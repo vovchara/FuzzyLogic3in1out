@@ -153,5 +153,5 @@ export async function startApp(root: HTMLElement): Promise<void> {
 
 /** A stored view is only honoured while the app still has it. */
 function storedView(raw: string | null): AppView {
-  return raw === "simulation" || raw === "experiment" ? raw : "workbench";
+  return raw === "experiment" ? raw : "workbench";
 }

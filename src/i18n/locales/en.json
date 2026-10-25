@@ -151,10 +151,6 @@
     }
   },
   "simulation": {
-    "tab": "Simulation",
-    "title": "The three controllers working together on a virtual network field",
-    "nodeCount": "Node count",
-    "regenerate": "Regenerate",
     "field": "Field",
     "results": "Nodes",
     "role": "Role",

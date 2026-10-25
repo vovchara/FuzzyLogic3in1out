@@ -19,9 +19,6 @@ export function mountTabBar(container: HTMLElement, ctx: AppShellCtx): Unmount {
         )
         .join("")}
       <span class="w-px self-center h-5 bg-graphite-200 mx-1 shrink-0" aria-hidden="true"></span>
-      <button type="button" data-view-tab="simulation" class="${TAB_CLASS}">
-        <span data-i18n="simulation.tab"></span>
-      </button>
       <button type="button" data-view-tab="experiment" class="${TAB_CLASS}">
         <span data-i18n="experiment.tab"></span>
       </button>
