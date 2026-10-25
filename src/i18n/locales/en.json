@@ -178,23 +178,54 @@
       "td": "Transmission Delay (TD)",
       "chs": "Cluster-Head Suitability (CHS)",
       "ee": "Expended Energy (EE)",
-      "ap": "Aggregation Priority (AP)"
+      "ap": "Aggregation Priority (AP)",
+      "sigma": "RSSI Spread",
+      "packets": "Packets Received"
     },
     "legendRoute": "Route (RS)",
     "legendFlow": "Data collection",
-    "telemetry": {
-      "import": "Import testbed CSV…",
-      "sample": "Get test CSV",
-      "loaded": "{{file}} — measured nodes: {{count}}",
-      "clear": "Remove measurements",
-      "legend": "Measured nodes",
-      "unknown": "CSV nodes missing from the field: {{ids}}",
-      "row": "Line {{line}}: {{reason}}",
-      "reasons": {
-        "columns": "expected 6 values",
-        "value": "invalid number"
-      },
-      "more": "…and {{count}} more rows with errors"
+    "groups": {
+      "inputs": "Input variables",
+      "outputs": "Output variables",
+      "testbed": "Testbed"
+    }
+  },
+  "experiment": {
+    "tab": "Experiment",
+    "title": "Field experiment: the three controllers on testbed measurements",
+    "layout": "Layout…",
+    "capture": "Capture…",
+    "layoutShort": "Layout",
+    "captureShort": "Capture",
+    "sample": "Sample",
+    "clear": "Clear",
+    "reset": "Reset",
+    "empty": "Load a layout and a capture to see the round",
+    "legendMeasured": "Measured on the testbed",
+    "legendModel": "Not measured",
+    "node": "Node {{id}}",
+    "layoutReasons": {
+      "json": "not a layout file (JSON)",
+      "required": "missing",
+      "type": "wrong type",
+      "range": "out of range",
+      "duplicate": "duplicate number",
+      "empty": "no nodes"
+    },
+    "rowReasons": {
+      "columns": "wrong number of values",
+      "value": "invalid number"
+    },
+    "row": "Line {{line}}: {{reason}}",
+    "more": "…and {{count}} more",
+    "missingInLayout": "The capture has nodes the layout does not place: {{ids}}",
+    "missingInCapture": "Layout nodes the base station never heard: {{ids}}",
+    "links": {
+      "title": "Links",
+      "from": "From",
+      "to": "To",
+      "rssi": "Mean RSSI",
+      "unknown": "not measured"
     }
   },
   "training": {

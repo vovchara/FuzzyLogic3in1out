@@ -66,7 +66,7 @@ export async function startApp(root: HTMLElement): Promise<void> {
 
   const store: Store = createStore({
     language: getLang(),
-    view: readString(ACTIVE_VIEW_KEY) === "simulation" ? "simulation" : "workbench",
+    view: storedView(readString(ACTIVE_VIEW_KEY)),
     activeSystemId: initialSystem.id,
     inputs: initialInputs,
     evaluation: initialEvaluation,
@@ -149,4 +149,9 @@ export async function startApp(root: HTMLElement): Promise<void> {
     getTraining: (id) => training[id],
     setTraining,
   });
+}
+
+/** A stored view is only honoured while the app still has it. */
+function storedView(raw: string | null): AppView {
+  return raw === "simulation" || raw === "experiment" ? raw : "workbench";
 }

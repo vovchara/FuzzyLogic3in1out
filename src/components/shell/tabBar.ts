@@ -1,4 +1,5 @@
 import { qa } from "../../dom";
+import type { AppView } from "../../state";
 import type { AppShellCtx, Unmount } from "../context";
 
 const TAB_CLASS = `px-2.5 py-2 text-xs sm:px-4 sm:text-sm whitespace-nowrap border-b-2 transition flex items-center gap-1 sm:gap-2 font-medium
@@ -21,18 +22,21 @@ export function mountTabBar(container: HTMLElement, ctx: AppShellCtx): Unmount {
       <button type="button" data-view-tab="simulation" class="${TAB_CLASS}">
         <span data-i18n="simulation.tab"></span>
       </button>
+      <button type="button" data-view-tab="experiment" class="${TAB_CLASS}">
+        <span data-i18n="experiment.tab"></span>
+      </button>
     </div>
   `;
 
   const systemTabs = qa<HTMLButtonElement>(container, "[data-system]");
-  const simTab = qa<HTMLButtonElement>(container, "[data-view-tab]")[0];
+  const viewTabs = qa<HTMLButtonElement>(container, "[data-view-tab]");
 
   const refresh = () => {
     const { activeSystemId, view } = ctx.store.getState();
     for (const btn of systemTabs) {
       btn.dataset.active = String(view === "workbench" && btn.dataset.system === activeSystemId);
     }
-    simTab.dataset.active = String(view === "simulation");
+    for (const btn of viewTabs) btn.dataset.active = String(view === btn.dataset.viewTab);
   };
 
   for (const btn of systemTabs) {
@@ -44,9 +48,12 @@ export function mountTabBar(container: HTMLElement, ctx: AppShellCtx): Unmount {
     });
   }
 
-  simTab.addEventListener("click", () => {
-    if (ctx.store.getState().view !== "simulation") ctx.setView("simulation");
-  });
+  for (const btn of viewTabs) {
+    btn.addEventListener("click", () => {
+      const view = btn.dataset.viewTab as AppView;
+      if (ctx.store.getState().view !== view) ctx.setView(view);
+    });
+  }
 
   refresh();
   const unsub = ctx.store.subscribe(refresh);

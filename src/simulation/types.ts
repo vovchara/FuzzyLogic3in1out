@@ -1,10 +1,11 @@
+import type { Link } from "./links";
+
 /**
- * Semi-physical (hardware-in-the-loop) simulation of the three controllers on
- * one virtual sensor field. The split of responsibilities is deliberate and is
- * what the thesis text claims: position-independent quantities (residual
- * energy, traffic) come from measurements or the scenario, while every
- * position-dependent quantity (distance, link quality, delivery, delay) is
- * derived from the virtual topology through the channel model.
+ * The three controllers chained on one sensor field, in two modes. The
+ * simulation is fully virtual: every position-dependent quantity (distance,
+ * link quality, delivery, delay) is derived from the virtual topology through
+ * the channel model. The experiment runs the same chain on a measured layout:
+ * links, delivery and delay come from the testbed, distances from the layout.
  */
 
 export interface Point {
@@ -47,6 +48,8 @@ export interface NodeResult {
   /** Aggregation priority; null for the head and when no rule fired. */
   readonly ap: number | null;
   readonly role: NodeRole;
+  /** Which of the node's inputs came from the testbed rather than the model. */
+  readonly measured: { readonly link: boolean; readonly td: boolean };
 }
 
 /** One hop of the route from the cluster head; `to` is null at the base station. */
@@ -65,4 +68,6 @@ export interface SimulationResult {
   readonly headId: number | null;
   readonly aggregatorId: number | null;
   readonly route: readonly RouteHop[];
+  /** The link each hop of `route` travels on, index for index. */
+  readonly routeLinks: readonly Link[];
 }

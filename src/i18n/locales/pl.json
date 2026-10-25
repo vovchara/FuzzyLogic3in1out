@@ -178,23 +178,54 @@
       "td": "Opóźnienie transmisji (TD)",
       "chs": "Przydatność na głowicę klastra (CHS)",
       "ee": "Zużycie energii (EE)",
-      "ap": "Priorytet agregacji (AP)"
+      "ap": "Priorytet agregacji (AP)",
+      "sigma": "Rozrzut RSSI",
+      "packets": "Odebrane pakiety"
     },
     "legendRoute": "Trasa (RS)",
     "legendFlow": "Zbieranie danych",
-    "telemetry": {
-      "import": "Import CSV ze stanowiska…",
-      "sample": "Pobierz testowy CSV",
-      "loaded": "{{file}} — węzły z pomiarami: {{count}}",
-      "clear": "Usuń pomiary",
-      "legend": "Węzły z pomiarami",
-      "unknown": "W CSV są węzły, których nie ma na polu: {{ids}}",
-      "row": "Wiersz {{line}}: {{reason}}",
-      "reasons": {
-        "columns": "oczekiwano 6 wartości",
-        "value": "nieprawidłowa liczba"
-      },
-      "more": "…i jeszcze {{count}} wierszy z błędami"
+    "groups": {
+      "inputs": "Zmienne wejściowe",
+      "outputs": "Zmienne wyjściowe",
+      "testbed": "Stanowisko"
+    }
+  },
+  "experiment": {
+    "tab": "Eksperyment",
+    "title": "Eksperyment terenowy: trzy kontrolery na pomiarach ze stanowiska",
+    "layout": "Rozmieszczenie…",
+    "capture": "Zapis…",
+    "layoutShort": "Rozmieszczenie",
+    "captureShort": "Zapis",
+    "sample": "Przykład",
+    "clear": "Wyczyść",
+    "reset": "Resetuj",
+    "empty": "Wczytaj rozmieszczenie i zapis, aby zobaczyć wynik",
+    "legendMeasured": "Zmierzono na stanowisku",
+    "legendModel": "Nie zmierzono",
+    "node": "Węzeł {{id}}",
+    "layoutReasons": {
+      "json": "to nie jest plik rozmieszczenia (JSON)",
+      "required": "brak pola",
+      "type": "zły typ",
+      "range": "poza zakresem",
+      "duplicate": "powtórzony numer",
+      "empty": "brak węzłów"
+    },
+    "rowReasons": {
+      "columns": "zła liczba wartości",
+      "value": "niepoprawna liczba"
+    },
+    "row": "Wiersz {{line}}: {{reason}}",
+    "more": "…i jeszcze {{count}}",
+    "missingInLayout": "W zapisie są węzły, których nie ma w rozmieszczeniu: {{ids}}",
+    "missingInCapture": "Węzły z rozmieszczenia, których SB nie słyszała: {{ids}}",
+    "links": {
+      "title": "Łącza",
+      "from": "Od",
+      "to": "Do",
+      "rssi": "Średni RSSI",
+      "unknown": "nie zmierzono"
     }
   },
   "training": {
