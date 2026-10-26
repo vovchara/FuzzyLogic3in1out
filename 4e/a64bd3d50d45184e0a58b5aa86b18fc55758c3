@@ -1,0 +1,28 @@
+src/simulation/orchestrator.ts
+  s_5527d8406e4b01::t_fb5b9216ad93cf 65-69,73-76,78
+tests/simulation.test.ts
+  s_5527d8406e4b01::t_874669d3ca4cfc 259-273
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.11",
+  "base_commit_sha": "4ea64bd3d50d45184e0a58b5aa86b18fc55758c3",
+  "prompts": {},
+  "sessions": {
+    "s_5527d8406e4b01": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b61f81e4-d782-4cc7-8718-9cd550b5cc11",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Volodymyr M <vovchara@ukr.net>",
+      "token_usage": {
+        "input_tokens": 350,
+        "output_tokens": 200449,
+        "cache_creation_tokens": 424696,
+        "cache_read_tokens": 49176648
+      },
+      "billing_source": "subscription"
+    }
+  }
+}
