@@ -256,6 +256,21 @@ describe("orchestrator", () => {
     expect(r.route).toEqual([{ from: 1, to: null, rs: null }]);
   });
 
+  it("breaks an exact cluster-head tie by residual energy", () => {
+    const r = runSimulation(
+      scenarioOf(
+        [
+          { id: 1, x: 90, y: 90, re: 0.5, dat: 20 },
+          { id: 2, x: 60, y: 60, re: 0.8, dat: 20 },
+          { id: 3, x: 30, y: 30, re: 0.8, dat: 20 },
+        ],
+        { x: 5, y: 5 },
+      ),
+      stubEngines({ chs: () => 92 }),
+    );
+    expect(r.headId).toBe(2);
+  });
+
   it("breaks a remaining tie (equal AP and RE) by the lower id", () => {
     const r = runSimulation(
       scenarioOf(
