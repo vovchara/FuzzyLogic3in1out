@@ -62,13 +62,20 @@ export function runSimulation(
     chsById.set(node.id, ev.fired ? ev.output : null);
   }
 
-  let headId: number | null = null;
+  // CHS ties are common: a dominant rule clips every such node at the same
+  // level. As for the aggregator below, the node with more residual energy
+  // takes the role; a remaining tie goes to the lower id.
+  let head: SimNode | null = null;
+  let bestChs = -Infinity;
   for (const node of nodes) {
     const chs = chsById.get(node.id);
     if (chs === null || chs === undefined) continue;
-    if (headId === null || chs > chsById.get(headId)!) headId = node.id;
+    if (chs > bestChs || (chs === bestChs && node.re > head!.re)) {
+      head = node;
+      bestChs = chs;
+    }
   }
-  const head = nodes.find((n) => n.id === headId) ?? null;
+  const headId = head?.id ?? null;
 
   // --- Aggregation: priority of every non-head node relative to the head. ---
   const eeVar = inputVar(engines.aggregation.system, "EE");
